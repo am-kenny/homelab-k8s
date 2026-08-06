@@ -1,0 +1,139 @@
+---
+# k8s_master is a CentOS stream 9 node
+- name: Bootstrap k3s master node
+  hosts: k8s_master
+  become: true
+
+  tasks:
+    - name: Update all packages
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: true
+      register: dnf_update
+
+    # dnf-utils help detect if a reboot is actually required
+    # This setup prevents reboot on each package update
+    - name: Install dnf-utils
+      ansible.builtin.dnf:
+        name: dnf-utils
+        state: present
+
+    - name: Check if a reboot is required
+      ansible.builtin.command: needs-restarting -r
+      register: reboot_check
+      failed_when: false
+      changed_when: false
+
+    - name: Reboot if required
+      ansible.builtin.reboot:
+        reboot_timeout: 300
+      when: reboot_check.rc == 1
+
+    - name: Remove swap entries from fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        regexp: "swap"
+        state: absent
+      register: swap_disable
+
+    - name: Disable swap
+      ansible.builtin.command: swapoff -a
+      when: swap_disable.changed
+
+
+- name: Configure firewalld
+  hosts: k8s_master
+  become: true
+
+  tasks:
+    - name: Ensure firewalld is installed
+      ansible.builtin.package:
+        name: firewalld
+        state: present
+
+    - name: Ensure firewalld is running and enabled
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Open k3s API server port (6443/tcp)
+      ansible.posix.firewalld:
+        port: 6443/tcp
+        permanent: true
+        immediate: true
+        state: enabled
+
+    - name: Open Flannel VXLAN port (8472/udp)
+      ansible.posix.firewalld:
+        port: 8472/udp
+        permanent: true
+        immediate: true
+        state: enabled
+
+    - name: Open kubelet metrics port (10250/tcp)
+      ansible.posix.firewalld:
+        port: 10250/tcp
+        permanent: true
+        immediate: true
+        state: enabled
+
+
+- name: Set up k3s
+  hosts: k8s_master
+  become: true
+
+  tasks:
+    - name: Install container-selinux
+      ansible.builtin.dnf:
+        name: container-selinux
+        state: latest
+
+    - name: Install selinux-policy-base
+      ansible.builtin.dnf:
+        name: selinux-policy-base
+        state: latest
+
+    - name: Import Rancher GPG key
+      ansible.builtin.rpm_key:
+        key: https://rpm.rancher.io/public.key
+        state: present
+
+    - name: Add k3s-selinux repo
+      ansible.builtin.yum_repository:
+        name: rancher-k3s-common-stable
+        description: Rancher k3s common (stable)
+        baseurl: https://rpm.rancher.io/k3s/stable/common/centos/9/noarch
+        gpgcheck: true
+        gpgkey: https://rpm.rancher.io/public.key
+
+    # Required for k3s to work with selinux enabled
+    - name: Install k3s-selinux
+      ansible.builtin.dnf:
+        name: k3s-selinux
+        state: latest
+
+    - name: Check if k3s is already installed
+      ansible.builtin.stat:
+        path: /usr/local/bin/k3s
+      register: k3s_binary
+
+    - name: Download and install k3s server
+      ansible.builtin.shell: curl -sfL https://get.k3s.io | sh -
+      when: not k3s_binary.stat.exists
+
+    - name: Ensure k3s is enabled and running
+      ansible.builtin.systemd_service:
+        name: k3s
+        enabled: true
+        state: started
+
+    - name: Confirm node is ready
+      ansible.builtin.command: /usr/local/bin/k3s kubectl get nodes
+      register: node_status
+      changed_when: false
+ 
+    - name: Print node status
+      ansible.builtin.debug:
+        var: node_status.stdout_lines

@@ -1,0 +1,3 @@
+k8s_master:
+  hosts:
+    am-server: # CentOS stream 9 node, defined in ~/.ssh/config

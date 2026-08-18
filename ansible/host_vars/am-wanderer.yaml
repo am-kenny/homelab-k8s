@@ -1,0 +1,7 @@
+wifi_firmware_package: firmware-mediatek
+eth_interface: enp4s0
+wifi_interface: wlp5s0
+
+bond_address: 192.168.178.10
+bond_prefix: 24
+bond_gateway: 192.168.178.1

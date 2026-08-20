@@ -1,0 +1,8 @@
+[Match]
+Name={{ item.name }}
+
+[Network]
+Bond=bond0
+{% if item.primary %}
+PrimarySlave=true
+{% endif %}

@@ -147,7 +147,7 @@
       ansible.builtin.debug:
         var: node_status.stdout_lines
 
-- name: Set up Wi-Fi failover
+- name: Set up bonded network with Wi-Fi failover
   hosts: wifi
   become: true
 
@@ -159,10 +159,9 @@
           - wifi_interface is defined
           - wifi_ssid is defined
           - wifi_psk is defined
-          - wifi_firmware_package is defined
           - bond_address is defined
           - bond_prefix is defined
-          - bond_gateway is defined
+          - default_gateway is defined
           - wifi_psk | length >= 8 and wifi_psk | length <= 63
         quiet: true
 
@@ -179,12 +178,8 @@
     - name: Install wireless networking packages
       ansible.builtin.apt:
         name:
-          - ifupdown
-          - ifenslave
           - wpasupplicant
-          - resolvconf
           - rfkill
-          - iw
         state: present
         update_cache: true
         cache_valid_time: 3600
@@ -194,6 +189,7 @@
       ansible.builtin.apt:
         name: "{{ wifi_firmware_package }}"
         state: present
+      when: wifi_firmware_package is defined
       notify: Reboot node
 
     # Must reboot before the next interface check. Does nothing if firmware was present
@@ -216,30 +212,11 @@
           - wifi_interface in ansible_facts.interfaces
         fail_msg: "{{ wifi_interface }} not present, firmware may not have loaded"
 
-    # ifupdown's wpa-conf owns the wpa_supplicant lifecycle now, so both
-    # the generic service and any per-interface instance must be kept out of the
-    # way. Two supplicants on one interface may fight over the association
-    - name: Remove the generic wpa_supplicant config
-      ansible.builtin.file:
-        path: /etc/wpa_supplicant/wpa_supplicant.conf
-        state: absent
 
-    - name: Mask generic wpa_supplicant service
-      ansible.builtin.systemd_service:
-        name: wpa_supplicant.service
-        masked: true
-        state: stopped
-
-    - name: Mask per-interface wpa_supplicant services
-      ansible.builtin.systemd_service:
-        name: "wpa_supplicant@{{ wifi_interface }}.service"
-        masked: true
-        state: stopped
-
-    # If association fails, check journalctl -u ifup@{{ wifi_interface }}.service
+    # If association fails, check journalctl -u wpa_supplicant@{{ wifi_interface }}
     - name: Configure wpa_supplicant for the WiFi slave
       ansible.builtin.template:
-        src: templates/wpa_supplicant.conf.j2
+        src: network/wpa_supplicant.conf.j2
         dest: "/etc/wpa_supplicant/wpa_supplicant-{{ wifi_interface }}.conf"
         owner: root
         group: root
@@ -248,43 +225,77 @@
       notify:
         - Reboot node
 
-    - name: Configure bonded interface (Ethernet primary, WiFi backup)
-      ansible.builtin.template:
-        src: templates/network_interfaces.j2
-        dest: /etc/network/interfaces
-        owner: root
-        group: root
-        mode: '0644'
-      notify:
-        - Reboot node
-
-    # Kernel rejects primary that is not yet a slave. Script sets it after enslavement
-    - name: Install bond primary slave script
-      ansible.builtin.template:
-        src: templates/bond_primary.sh.j2
-        dest: /usr/local/sbin/bond-primary
-        owner: root
-        group: root
-        mode: '0755'
-      notify:
-        - Reboot node
-
-    - name: Install bond primary slave unit
-      ansible.builtin.template:
-        src: templates/bond_primary.service.j2
-        dest: /etc/systemd/system/bond-primary.service
-        owner: root
-        group: root
-        mode: '0644'
-      notify:
-        - Reboot node
-
-    # Script is boot-only
-    - name: Enable bond primary slave unit
+    # Mask generic wpa_supplicant to avoid conflicts
+    - name: Mask generic wpa_supplicant service
       ansible.builtin.systemd_service:
-        name: bond-primary.service
+        name: wpa_supplicant.service
+        masked: true
+        state: stopped
+
+    - name: Enable per-interface wpa_supplicant
+      ansible.builtin.systemd_service:
+        name: "wpa_supplicant@{{ wifi_interface }}.service"
+        masked: false
         enabled: true
-        daemon_reload: true
+
+    - name: Create bond
+      ansible.builtin.template:
+        src: network/bond.netdev.j2
+        dest: "/etc/systemd/network/10-bond0.netdev"
+        owner: root
+        group: root
+        mode: '0644'
+      notify:
+        - Reboot node
+
+    - name: Configure bond addressing
+      ansible.builtin.template:
+        src: network/bond.network.j2
+        dest: "/etc/systemd/network/10-bond0.network"
+        owner: root
+        group: root
+        mode: '0644'
+      notify:
+        - Reboot node
+
+    - name: Configure bond members
+      ansible.builtin.template:
+        src: network/bond_member.network.j2
+        dest: "/etc/systemd/network/10-{{ item.name }}.network"
+        owner: root
+        group: root
+        mode: '0644'
+      loop:
+        - { name: "{{ eth_interface }}", primary: true }
+        - { name: "{{ wifi_interface }}", primary: false }
+      notify:
+        - Reboot node
+
+    # No DHCP client runs on the bond, so nothing maintains /etc/resolv.conf
+    - name: Configure DNS
+      ansible.builtin.template:
+        src: network/resolv.conf.j2
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: '0644'
+      when: dns_nameservers | default([]) | length > 0
+
+    # Disable default networking
+    - name: Remove ifupdown config
+      ansible.builtin.file:
+        path: /etc/network/interfaces
+        state: absent
+
+    - name: Mask ifupdown
+      ansible.builtin.systemd_service:
+        name: networking.service
+        masked: true
+
+    - name: Enable systemd-networkd
+      ansible.builtin.systemd_service:
+        name: systemd-networkd.service
+        enabled: true
 
     - name: Apply pending changes before verification
       ansible.builtin.meta: flush_handlers
@@ -333,10 +344,14 @@
           {{ wifi_interface }} is enslaved but not associated, there is no redundancy:
           {{ wifi_block }}
 
+    - name: Assert DNS resolves
+      ansible.builtin.command: "getent hosts {{ dns_domain }}"
+      changed_when: false
+
   handlers:
     - name: Reboot node
       ansible.builtin.reboot:
         reboot_timeout: 300
         connect_timeout: 10
-        post_reboot_delay: 15
+        post_reboot_delay: 30
  

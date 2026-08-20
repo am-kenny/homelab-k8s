@@ -129,15 +129,6 @@
         enabled: true
         state: started
 
-    # - name: Fetch node token for joining workers
-    #   ansible.builtin.slurp:
-    #     src: /var/lib/rancher/k3s/server/node-token
-    #   register: node_token
-
-    # - name: Show node token
-    #   ansible.builtin.debug:
-    #     msg: "Node token: {{ node_token.content | b64decode | trim }}"
-
     - name: Confirm node is ready
       ansible.builtin.command: /usr/local/bin/k3s kubectl get nodes
       register: node_status

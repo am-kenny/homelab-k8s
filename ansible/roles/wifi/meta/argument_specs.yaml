@@ -1,0 +1,50 @@
+argument_specs:
+  main:
+    short_description: Set up bonded network with Wi-Fi failover
+    description:
+      - Set up bonded network with Wi-Fi failover on a host with Ethernet + Wi-Fi /etc/network/interfaces.
+      - Network in this setup is managed by 'systemd-networkd'
+      - Ethernet node is always being prioritised over Wi-Fi
+    author: Andrii Prykhodko
+    options:
+      eth_interface:
+          type: "str"
+          required: true
+      wifi_interface:
+          type: "str"
+          required: true
+      wifi_ssid:
+          type: "str"
+          required: true
+      wifi_psk:
+          type: "str"
+          required: true
+      wifi_country:
+          type: "str"
+          required: false
+          default: "DE"
+      wifi_firmware_package:
+          type: "str"
+          required: false
+      bond_name:
+          type: "str"
+          required: false
+          default: "bond0"
+      bond_address:
+          type: "str"
+          required: true
+      bond_prefix:
+          type: "int"
+          required: true
+      default_gateway:
+          type: "str"
+          required: true
+      dns_nameservers:
+          type: "list"
+          elements: "str"
+          required: false
+          default: []
+      dns_domain:
+          type: "str"
+          required: false
+          default: ""

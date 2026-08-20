@@ -1,0 +1,189 @@
+- name: Validate the PSK
+  ansible.builtin.assert:
+    that:
+      - wifi_psk | length >= 8 and wifi_psk | length <= 63
+    fail_msg: "wifi_psk must be 8-63 characters long"
+    quiet: true
+
+# Lockout guard: reboot expects to reconnect at the same address
+- name: Refuse to run if the host does not already hold the bond IP
+  ansible.builtin.assert:
+    that:
+      - bond_address in ansible_facts.all_ipv4_addresses
+    fail_msg: >-
+      {{ inventory_hostname }} has {{ ansible_facts.all_ipv4_addresses | join(', ') }}
+      but bond_address is {{ bond_address }}. Set a DHCP reservation for the
+      {{ eth_interface }} MAC at {{ bond_address }} and reboot before running this.
+
+- name: Install wireless networking packages
+  ansible.builtin.apt:
+    name:
+      - wpasupplicant
+      - rfkill
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+# Only firmware triggers a reboot
+- name: Install wireless firmware
+  ansible.builtin.apt:
+    name: "{{ wifi_firmware_package }}"
+    state: present
+  when: wifi_firmware_package is defined
+  notify: Reboot node
+
+# Must reboot before the next interface check. Does nothing if firmware was present
+- name: Reboot now if firmware was just installed
+  ansible.builtin.meta: flush_handlers
+
+# Block may brake association
+- name: Unblock wireless
+  ansible.builtin.command: rfkill unblock wifi
+  changed_when: false
+
+- name: Re-read interface facts after firmware install
+  ansible.builtin.setup:
+    gather_subset: network
+
+- name: Validate interfaces exist
+  ansible.builtin.assert:
+    that:
+      - eth_interface in ansible_facts.interfaces
+      - wifi_interface in ansible_facts.interfaces
+    fail_msg: "{{ wifi_interface }} not present, firmware may not have loaded"
+
+
+# If association fails, check journalctl -u wpa_supplicant@{{ wifi_interface }}
+- name: Configure wpa_supplicant for the WiFi slave
+  ansible.builtin.template:
+    src: wpa_supplicant.conf.j2
+    dest: "/etc/wpa_supplicant/wpa_supplicant-{{ wifi_interface }}.conf"
+    owner: root
+    group: root
+    mode: '0600'
+  no_log: true
+  notify:
+    - Reboot node
+
+# Mask generic wpa_supplicant to avoid conflicts
+- name: Mask generic wpa_supplicant service
+  ansible.builtin.systemd_service:
+    name: wpa_supplicant.service
+    masked: true
+    state: stopped
+
+- name: Enable per-interface wpa_supplicant
+  ansible.builtin.systemd_service:
+    name: "wpa_supplicant@{{ wifi_interface }}.service"
+    masked: false
+    enabled: true
+
+- name: Create bond
+  ansible.builtin.template:
+    src: bond.netdev.j2
+    dest: "/etc/systemd/network/10-bond0.netdev"
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Reboot node
+
+- name: Configure bond addressing
+  ansible.builtin.template:
+    src: bond.network.j2
+    dest: "/etc/systemd/network/10-bond0.network"
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Reboot node
+
+- name: Configure bond members
+  ansible.builtin.template:
+    src: bond_member.network.j2
+    dest: "/etc/systemd/network/10-{{ item.name }}.network"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - { name: "{{ eth_interface }}", primary: true }
+    - { name: "{{ wifi_interface }}", primary: false }
+  notify:
+    - Reboot node
+
+# No DHCP client runs on the bond, so nothing maintains /etc/resolv.conf
+- name: Configure DNS
+  ansible.builtin.template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: '0644'
+  when: dns_nameservers | default([]) | length > 0
+
+# Disable default networking
+- name: Remove ifupdown config
+  ansible.builtin.file:
+    path: /etc/network/interfaces
+    state: absent
+
+- name: Mask ifupdown
+  ansible.builtin.systemd_service:
+    name: networking.service
+    masked: true
+
+- name: Enable systemd-networkd
+  ansible.builtin.systemd_service:
+    name: systemd-networkd.service
+    enabled: true
+
+- name: Apply pending changes before verification
+  ansible.builtin.meta: flush_handlers
+
+# Waits only, never fails; the asserts below give the readable diagnostic
+- name: Wait for bond0 to converge
+  ansible.builtin.slurp:
+    src: /proc/net/bonding/bond0
+  register: bond_state
+  timeout: 30
+  vars:
+    _bond: "{{ bond_state.content | default('') | b64decode }}"
+    _wifi: >-
+      {{ (_bond.split('Slave Interface: ' ~ wifi_interface) | last).split('Slave Interface:') | first }}
+  until:
+    - "('Primary Slave: ' ~ eth_interface) in _bond"
+    - "('Currently Active Slave: ' ~ eth_interface) in _bond"
+    - "('Slave Interface: ' ~ wifi_interface) in _bond"
+    - "'MII Status: up' in _wifi"
+  retries: 6
+  delay: 5
+  failed_when: false
+
+- name: Decode bond0 state
+  ansible.builtin.set_fact:
+    bond_status: "{{ bond_state.content | default('') | b64decode }}"
+
+- name: Assert bond has correct primary and both slaves
+  ansible.builtin.assert:
+    that:
+      - "('Primary Slave: ' ~ eth_interface) in bond_status"
+      - "('Currently Active Slave: ' ~ eth_interface) in bond_status"
+      - "('Slave Interface: ' ~ eth_interface) in bond_status"
+      - "('Slave Interface: ' ~ wifi_interface) in bond_status"
+    success_msg: "bond0 has {{ eth_interface }} as primary with both slaves attached"
+    fail_msg: "bond0 misconfigured:\n{{ bond_status }}"
+
+- name: Assert the Wi-Fi slave is associated
+  vars:
+    wifi_block: >-
+      {{ (bond_status.split('Slave Interface: ' ~ wifi_interface) | last).split('Slave Interface:') | first }}
+  ansible.builtin.assert:
+    that:
+      - "'MII Status: up' in wifi_block"
+    fail_msg: |
+      {{ wifi_interface }} is enslaved but not associated, there is no redundancy:
+      {{ wifi_block }}
+
+- name: Assert DNS resolves
+  ansible.builtin.command: "getent hosts {{ dns_domain }}"
+  changed_when: false

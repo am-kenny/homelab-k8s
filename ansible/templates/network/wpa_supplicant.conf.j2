@@ -1,0 +1,10 @@
+ctrl_interface=DIR=/run/wpa_supplicant GROUP=netdev
+update_config=0
+country={{ wifi_country | default('DE') }}
+
+network={
+    ssid={{ wifi_ssid | to_json }}
+    psk={{ wifi_psk | to_json }}
+    key_mgmt=WPA-PSK
+    mac_addr=0
+}

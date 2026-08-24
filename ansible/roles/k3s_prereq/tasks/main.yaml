@@ -1,0 +1,2 @@
+- name: main | Disable swap 
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/swap.yaml"

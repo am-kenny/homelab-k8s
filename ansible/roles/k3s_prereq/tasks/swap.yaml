@@ -1,0 +1,25 @@
+---
+- name: swap | Check whether fstab exists
+  ansible.builtin.stat:
+    path: /etc/fstab
+  register: __k3s_prereq_fstab
+
+- name: swap | Remove swap entries from fstab
+  ansible.posix.mount:
+    name: "{{ item }}"
+    fstype: swap
+    state: absent
+  loop:
+    - swap
+    - none
+  when: __k3s_prereq_fstab.stat.exists
+
+- name: swap | Mask swap.target to persist swapoff
+  ansible.builtin.systemd_service:
+    name: swap.target
+    masked: true
+
+- name: swap | Disable swap at runtime
+  ansible.builtin.command: swapoff --all
+  when: ansible_facts['swaptotal_mb'] | int > 0
+  changed_when: true

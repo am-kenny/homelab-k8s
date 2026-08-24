@@ -6,22 +6,11 @@
   roles:
     - os_base
 
-# k8s_master is a CentOS stream 9 node
-- name: Bootstrap k3s master node
-  hosts: k8s_master
+- name: Prepare node for k3s
+  hosts: "*"
   become: true
-  tasks:
-    - name: Remove swap entries from fstab
-      ansible.builtin.lineinfile:
-        path: /etc/fstab
-        regexp: "swap"
-        state: absent
-      register: swap_disable
-
-    - name: Disable swap
-      ansible.builtin.command: swapoff -a
-      when: swap_disable.changed
-
+  roles:
+    - k3s_prereq
 
 - name: Configure firewalld
   hosts: k8s_master

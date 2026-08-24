@@ -1,35 +1,16 @@
 ---
+
+- name: Update all packages
+  hosts: "*"
+  become: true
+  roles:
+    - os_base
+
 # k8s_master is a CentOS stream 9 node
 - name: Bootstrap k3s master node
   hosts: k8s_master
   become: true
-
   tasks:
-    - name: Update all packages
-      ansible.builtin.dnf:
-        name: "*"
-        state: latest
-        update_cache: true
-      register: dnf_update
-
-    # dnf-utils help detect if a reboot is actually required
-    # This setup prevents reboot on each package update
-    - name: Install dnf-utils
-      ansible.builtin.dnf:
-        name: dnf-utils
-        state: present
-
-    - name: Check if a reboot is required
-      ansible.builtin.command: needs-restarting -r
-      register: reboot_check
-      failed_when: false
-      changed_when: false
-
-    - name: Reboot if required
-      ansible.builtin.reboot:
-        reboot_timeout: 300
-      when: reboot_check.rc == 1
-
     - name: Remove swap entries from fstab
       ansible.builtin.lineinfile:
         path: /etc/fstab

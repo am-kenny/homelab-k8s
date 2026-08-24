@@ -1,0 +1,23 @@
+# dnf-plugins-core provides needs-restarting, that helps detect if a reboot is actually required
+# This setup prevents reboot on each package update
+- name: RedHat | Install reboot detection tooling
+  ansible.builtin.dnf:
+    name: dnf-plugins-core
+    state: present
+
+- name: RedHat | Update all packages
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    update_cache: true
+  register: dnf_update
+
+- name: RedHat | Check if a reboot is required
+  ansible.builtin.command: needs-restarting -r
+  register: __os_base_reboot_check
+  failed_when: false
+  changed_when: false
+
+- name: Record reboot requirement
+  ansible.builtin.set_fact:
+    __os_base_reboot_required: "{{ __os_base_reboot_check.rc == 1 }}"

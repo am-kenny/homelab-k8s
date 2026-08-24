@@ -1,0 +1,28 @@
+# needrestart helps detect if a reboot is actually required
+# This setup prevents reboot on each package update
+- name: Debian | Install reboot detection tooling
+  ansible.builtin.apt:
+    name: needrestart
+    state: present
+
+- name: Debian | Configure needrestart to never prompt
+  ansible.builtin.copy:
+    content: "$nrconf{restart} = 'l';\n"
+    dest: /etc/needrestart/conf.d/50-ansible.conf
+    mode: "0644"
+
+- name: Debian | Update all packages
+  ansible.builtin.apt:
+    upgrade: dist
+    update_cache: true
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: Debian | Check if a reboot is required
+  ansible.builtin.command: needrestart -p -k
+  register: __os_base_reboot_check
+  changed_when: false
+
+- name: Record reboot requirement
+  ansible.builtin.set_fact:
+    __os_base_reboot_required: "{{ __os_base_reboot_check.rc != 0 }}"

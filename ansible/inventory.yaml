@@ -1,10 +1,12 @@
-k8s_master:
-  hosts:
-    am-server: # CentOS stream 9 node, defined in ~/.ssh/config
+k8s_cluster:
+  children:
+    k8s_master:
+      hosts:
+        am-server: # CentOS stream 9 node
 
-k8s_worker:
-  hosts:
-    am-wanderer:
+    k8s_worker:
+      hosts:
+        am-wanderer: # Debian node
 
 wifi:
   hosts:

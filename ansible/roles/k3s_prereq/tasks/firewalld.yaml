@@ -1,0 +1,26 @@
+- name: firewalld | Ensure firewalld is enabled
+  ansible.builtin.service:
+    name: firewalld
+    enabled: true
+
+- name: firewalld | Open k3s ports
+  ansible.posix.firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  # 8472/udp Flannel VXLAN, 10250/tcp kubelet metrics, 6443/tcp apiserver
+  loop: >-
+    {{ ["8472/udp", "10250/tcp"]
+       + (["6443/tcp"] if k3s_prereq_node_type == "server" else []) }}
+
+- name: firewalld | Trust k3s pod and service CIDRs
+  ansible.posix.firewalld:
+    source: "{{ item }}"
+    zone: trusted
+    permanent: true
+    immediate: true
+    state: enabled
+  loop:
+    - "{{ k3s_prereq_cluster_cidr }}"
+    - "{{ k3s_prereq_service_cidr }}"

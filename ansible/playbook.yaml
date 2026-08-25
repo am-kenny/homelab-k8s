@@ -12,44 +12,6 @@
   roles:
     - k3s_prereq
 
-- name: Configure firewalld
-  hosts: k8s_master
-  become: true
-
-  tasks:
-    - name: Ensure firewalld is installed
-      ansible.builtin.package:
-        name: firewalld
-        state: present
-
-    - name: Ensure firewalld is running and enabled
-      ansible.builtin.service:
-        name: firewalld
-        state: started
-        enabled: true
-
-    - name: Open k3s API server port (6443/tcp)
-      ansible.posix.firewalld:
-        port: 6443/tcp
-        permanent: true
-        immediate: true
-        state: enabled
-
-    - name: Open Flannel VXLAN port (8472/udp)
-      ansible.posix.firewalld:
-        port: 8472/udp
-        permanent: true
-        immediate: true
-        state: enabled
-
-    - name: Open kubelet metrics port (10250/tcp)
-      ansible.posix.firewalld:
-        port: 10250/tcp
-        permanent: true
-        immediate: true
-        state: enabled
-
-
 - name: Set up k3s
   hosts: k8s_master
   become: true

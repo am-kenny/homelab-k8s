@@ -1,0 +1,5 @@
+---
+k3s_prereq_node_type: agent
+
+k3s_prereq_cluster_cidr: "10.42.0.0/16"
+k3s_prereq_service_cidr: "10.43.0.0/16"

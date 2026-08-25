@@ -21,8 +21,9 @@
 - name: Debian | Check if a reboot is required
   ansible.builtin.command: needrestart -p -k
   register: __os_base_reboot_check
+  failed_when: false
   changed_when: false
 
-- name: Record reboot requirement
+- name: Debian | Record reboot requirement
   ansible.builtin.set_fact:
     __os_base_reboot_required: "{{ __os_base_reboot_check.rc != 0 }}"

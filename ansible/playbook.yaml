@@ -17,35 +17,6 @@
   become: true
 
   tasks:
-    - name: Install container-selinux
-      ansible.builtin.dnf:
-        name: container-selinux
-        state: latest
-
-    - name: Install selinux-policy-base
-      ansible.builtin.dnf:
-        name: selinux-policy-base
-        state: latest
-
-    - name: Import Rancher GPG key
-      ansible.builtin.rpm_key:
-        key: https://rpm.rancher.io/public.key
-        state: present
-
-    - name: Add k3s-selinux repo
-      ansible.builtin.yum_repository:
-        name: rancher-k3s-common-stable
-        description: Rancher k3s common (stable)
-        baseurl: https://rpm.rancher.io/k3s/stable/common/centos/9/noarch
-        gpgcheck: true
-        gpgkey: https://rpm.rancher.io/public.key
-
-    # Required for k3s to work with selinux enabled
-    - name: Install k3s-selinux
-      ansible.builtin.dnf:
-        name: k3s-selinux
-        state: latest
-
     - name: Check if k3s is already installed
       ansible.builtin.stat:
         path: /usr/local/bin/k3s

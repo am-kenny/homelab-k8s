@@ -1,0 +1,3 @@
+__k3s_server_host: "{{ groups[k3s_server_group][0] }}"
+__k3s_service: "{{ 'k3s' if k3s_node_type == 'server' else 'k3s-agent' }}"
+__k3s_url: "https://{{ __k3s_server_host }}:6443"

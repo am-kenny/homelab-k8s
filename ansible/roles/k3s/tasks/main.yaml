@@ -1,0 +1,58 @@
+---
+- name: main | Check installed k3s version
+  ansible.builtin.command: /usr/local/bin/k3s --version
+  register: __k3s_installed
+  failed_when: false
+  changed_when: false
+  check_mode: false
+
+- name: main | Check if install is needed
+  ansible.builtin.set_fact:
+    __k3s_install_needed: >-
+      {{ __k3s_installed.rc != 0
+         or (k3s_version | length > 0 and k3s_version not in __k3s_installed.stdout) }}
+
+- name: main | Fetch join token from the server node
+  ansible.builtin.slurp:
+    path: /var/lib/rancher/k3s/server/node-token
+  register: __k3s_token
+  delegate_to: "{{ __k3s_server_host }}"
+  when:
+    - k3s_node_type == 'agent'
+    - __k3s_install_needed
+
+- name: main | Download k3s installer
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: /usr/local/bin/k3s-install.sh
+    mode: "0755"
+  when: __k3s_install_needed
+
+- name: main | Install k3s
+  ansible.builtin.command: /usr/local/bin/k3s-install.sh
+  environment:
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+    K3S_URL: "{{ __k3s_url if k3s_node_type == 'agent' else '' }}"
+    K3S_TOKEN: "{{ __k3s_token.content | default('') | b64decode | trim }}"
+  when: __k3s_install_needed
+  changed_when: true
+  no_log: true
+
+- name: main | Ensure k3s is enabled and running
+  ansible.builtin.systemd_service:
+    name: "{{ __k3s_service }}"
+    enabled: true
+    state: started
+  when: not (ansible_check_mode and __k3s_install_needed)
+
+- name: main | Wait for node to report Ready
+  ansible.builtin.command: /usr/local/bin/k3s kubectl get nodes --no-headers
+  register: __k3s_nodes
+  changed_when: false
+  check_mode: false
+  retries: 30
+  delay: 10
+  until: __k3s_nodes.stdout is search('\sReady\s')
+  when:
+    - k3s_node_type == 'server'
+    - not (ansible_check_mode and __k3s_install_needed)

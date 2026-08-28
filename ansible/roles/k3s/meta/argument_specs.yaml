@@ -1,0 +1,18 @@
+argument_specs:
+  main:
+    short_description: Install and configure k3s
+    author: Andrii Prykhodko
+    options:
+      k3s_node_type:
+        type: str
+        default: server
+        choices: [server, agent]
+        description: Whether this node runs the control plane or joins as a worker.
+      k3s_version:
+        type: str
+        default: ""
+        description: k3s version to install.
+      k3s_server_group:
+        type: str
+        default: k8s_master
+        description: Inventory group containing the server node.

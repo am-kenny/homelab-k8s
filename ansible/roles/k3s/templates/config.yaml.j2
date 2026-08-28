@@ -1,0 +1,4 @@
+{% if k3s_config %}
+# Managed by Ansible - do not edit
+{{ k3s_config | to_nice_yaml }}
+{% endif %}

@@ -12,34 +12,19 @@
   roles:
     - k3s_prereq
 
-- name: Set up k3s
+- name: Set up k3s server
   hosts: k8s_master
   become: true
+  roles:
+    - role: k3s
+      k3s_node_type: server
 
-  tasks:
-    - name: Check if k3s is already installed
-      ansible.builtin.stat:
-        path: /usr/local/bin/k3s
-      register: k3s_binary
-
-    - name: Download and install k3s server
-      ansible.builtin.shell: curl -sfL https://get.k3s.io | sh -
-      when: not k3s_binary.stat.exists
-
-    - name: Ensure k3s is enabled and running
-      ansible.builtin.systemd_service:
-        name: k3s
-        enabled: true
-        state: started
-
-    - name: Confirm node is ready
-      ansible.builtin.command: /usr/local/bin/k3s kubectl get nodes
-      register: node_status
-      changed_when: false
- 
-    - name: Print node status
-      ansible.builtin.debug:
-        var: node_status.stdout_lines
+- name: Set up k3s agents
+  hosts: k8s_worker
+  become: true
+  roles:
+    - role: k3s
+      k3s_node_type: agent
 
 - name: Set up bonded network with Wi-Fi failover
   hosts: wifi

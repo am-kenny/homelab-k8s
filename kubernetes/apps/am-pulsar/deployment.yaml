@@ -15,7 +15,7 @@ spec:
         app: am-pulsar
     spec:
       containers:
-        - image: ghcr.io/am-kenny/ampulsar:sha-141bc05
+        - image: ghcr.io/am-kenny/ampulsar:sha-0edb568
           name: am-pulsar
           envFrom:
             - configMapRef:

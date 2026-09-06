@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: am-pulsar
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: am-pulsar
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: am-pulsar
+    spec:
+      containers:
+        - image: ghcr.io/am-kenny/ampulsar:sha-141bc05
+          name: am-pulsar
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: am-pulsar-data

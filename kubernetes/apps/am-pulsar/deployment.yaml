@@ -17,6 +17,11 @@ spec:
       containers:
         - image: ghcr.io/am-kenny/ampulsar:sha-141bc05
           name: am-pulsar
+          envFrom:
+            - configMapRef:
+                name: am-pulsar-config
+            - secretRef:
+                name: am-pulsar-secrets
           volumeMounts:
             - name: data
               mountPath: /app/data

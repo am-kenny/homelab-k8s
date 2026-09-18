@@ -29,7 +29,7 @@ existingSecret: ""
 image:
   repository: ghcr.io/am-kenny/ampulsar
   pullPolicy: IfNotPresent
-  tag: "sha-514f427"
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""

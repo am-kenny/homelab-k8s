@@ -58,6 +58,8 @@ spec:
               value: {{ .Values.template.language | quote }}
             - name: POLL_INTERVAL
               value: {{ .Values.pollInterval | quote }}
+            - name: STORE_PATH
+              value: {{ printf "%s/store.json" (trimSuffix "/" .Values.persistence.mountPath) | quote }}
           envFrom:
             - secretRef:
                 name: {{ .Values.existingSecret | default (printf "%s-secrets" (include "am-pulsar.fullname" .)) }}

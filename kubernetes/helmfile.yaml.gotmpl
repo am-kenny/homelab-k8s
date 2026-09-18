@@ -1,0 +1,24 @@
+environments:
+  default:
+    values:
+      - instances: ["nurlan", "agent"]
+
+---
+
+helmDefaults:
+  wait: true
+  timeout: 300
+  atomic: true
+  createNamespace: true
+
+---
+
+releases:
+{{- range .Values.instances }}
+  - name: am-pulsar-{{ . }}
+    chart: ./charts/am-pulsar
+    namespace: am-pulsar
+    values:
+      - values/am-pulsar/common.yaml
+      - values/am-pulsar/{{ . }}.yaml
+{{- end }}

@@ -1,0 +1,67 @@
+# Default values for am-pulsar.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+twitch:
+  channelName: ""
+
+telegram:
+  chatID: ""
+  editOnChange: false
+  onEnd: "none"
+  pin: false
+
+template:
+  style: ""
+  language: ""
+
+pollInterval: "1m"
+
+persistence:
+  enabled: true
+  storageClass: ""
+  size: 1Gi
+  mountPath: /app/data
+
+# Secret holding TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET, TELEGRAM_BOT_TOKEN.
+# Created out of band, not managed by this chart.
+existingSecret: ""
+
+image:
+  repository: ghcr.io/am-kenny/ampulsar
+  pullPolicy: IfNotPresent
+  tag: "sha-514f427"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  automount: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

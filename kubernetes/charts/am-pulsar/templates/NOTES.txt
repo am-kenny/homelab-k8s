@@ -1,0 +1,37 @@
+{{- $secret := .Values.existingSecret | default (printf "%s-secrets" (include "am-pulsar.fullname" .)) -}}
+{{- $n := 0 -}}
+AmPulsar Helm Chart Deployment
+
+{{ $n = add1 $n }}{{ $n }}. Deployment Information:
+   - Release Name: {{ .Release.Name }}
+   - Namespace: {{ .Release.Namespace }}
+   - Chart Name: {{ .Chart.Name }}
+   - Chart Version: {{ .Chart.Version }}
+   - App Version: {{ .Chart.AppVersion }}
+
+{{ $n = add1 $n }}{{ $n }}. Credentials:
+   - This chart does NOT create the credentials Secret.
+     It must already exist as "{{ $secret }}" in namespace {{ .Release.Namespace }}
+     with the keys TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET and TELEGRAM_BOT_TOKEN.
+
+   - Create it with:
+     kubectl create secret generic {{ $secret }} -n {{ .Release.Namespace }} \
+       --from-literal=TWITCH_CLIENT_ID=... \
+       --from-literal=TWITCH_CLIENT_SECRET=... \
+       --from-literal=TELEGRAM_BOT_TOKEN=...
+
+{{ if .Values.persistence.enabled -}}
+{{ $n = add1 $n }}{{ $n }}. Persistence:
+   - Claim Name: {{ include "am-pulsar.fullname" . }}-data
+   - Mount Path: {{ .Values.persistence.mountPath }}
+   - Size: {{ .Values.persistence.size }}
+
+{{ end -}}
+{{ $n = add1 $n }}{{ $n }}. Clean Up:
+   - To uninstall the release:
+     helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}
+{{- if .Values.persistence.enabled }}
+
+   - The PVC is not removed by uninstall. To also discard the state:
+     kubectl delete pvc {{ include "am-pulsar.fullname" . }}-data -n {{ .Release.Namespace }}
+{{- end }}

@@ -1,0 +1,14 @@
+twitch:
+  channelName: "nurlan921"
+
+telegram:
+  chatID: "-1004470157893"
+  editOnChange: false
+  onEnd: "delete"
+  pin: false
+
+template:
+  style: "simplified"
+  language: "ru"
+
+pollInterval: "1m"

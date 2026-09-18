@@ -1,0 +1,5 @@
+twitch:
+  channelName: "theprimeagen"
+
+telegram:
+  pin: true

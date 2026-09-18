@@ -1,0 +1,13 @@
+existingSecret: am-pulsar-secrets
+
+telegram:
+  chatID: "-1004470157893"
+  editOnChange: false
+  onEnd: "edit_in_place"
+  pin: false
+
+template:
+  # style: ""
+  language: "eng"
+
+pollInterval: "30s"

@@ -2,7 +2,7 @@ twitch:
   channelName: "nurlan921"
 
 telegram:
-  chatID: "-1004470157893"
+  chatID: "-1003949098970"
   editOnChange: false
   onEnd: "delete"
   pin: false

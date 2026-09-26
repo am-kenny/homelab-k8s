@@ -2,7 +2,7 @@ existingSecret: am-pulsar-secrets
 
 telegram:
   chatID: "-1004470157893"
-  editOnChange: false
+  editOnChange: true
   onEnd: "edit_in_place"
   pin: false
 

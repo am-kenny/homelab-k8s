@@ -1,4 +1,5 @@
 twitch:
+  enabled: true
   channelName: "nurlan921"
 
 telegram:

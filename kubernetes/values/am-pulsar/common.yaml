@@ -1,6 +1,7 @@
 existingSecret: am-pulsar-secrets
 
 telegram:
+  enabled: true
   chatID: "-1004470157893"
   editOnChange: true
   onEnd: "edit_in_place"

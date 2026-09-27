@@ -1,0 +1,6 @@
+tiktok:
+  enabled: true
+  username: rocketleague
+
+telegram:
+  onEnd: "new_message"

@@ -1,3 +1,12 @@
+{{- if not (or .Values.twitch.enabled .Values.tiktok.enabled) }}
+{{- fail "enable a source platform: twitch.enabled or tiktok.enabled" }}
+{{- end }}
+{{- if and .Values.twitch.enabled .Values.tiktok.enabled }}
+{{- fail "only one source platform can be enabled: twitch.enabled or tiktok.enabled" }}
+{{- end }}
+{{- if not .Values.telegram.enabled }}
+{{- fail "enable a destination platform: telegram.enabled" }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -42,16 +51,36 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
+            {{- with .Values.twitch }}
+            - name: TWITCH_ENABLED
+              value: {{ .enabled | quote }}
+            {{- if .enabled }}
             - name: TWITCH_CHANNEL_NAME
-              value: {{ required "twitch.channelName is required" .Values.twitch.channelName | quote }}
+              value: {{ required "twitch.channelName is required when twitch.enabled" .channelName | quote }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.tiktok }}
+            - name: TIKTOK_ENABLED
+              value: {{ .enabled | quote }}
+            {{- if .enabled }}
+            - name: TIKTOK_USERNAME
+              value: {{ required "tiktok.username is required when tiktok.enabled" .username | quote }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.telegram }}
+            - name: TELEGRAM_ENABLED
+              value: {{ .enabled | quote }}
+            {{- if .enabled }}
             - name: TELEGRAM_CHAT_ID
-              value: {{ required "telegram.chatID is required" .Values.telegram.chatID | quote }}
+              value: {{ required "telegram.chatID is required when telegram.enabled" .chatID | quote }}
             - name: TELEGRAM_EDIT_ON_CHANGE
-              value: {{ .Values.telegram.editOnChange | quote }}
+              value: {{ .editOnChange | quote }}
             - name: TELEGRAM_ACTION_ON_END
-              value: {{ .Values.telegram.onEnd | quote }}
+              value: {{ .onEnd | quote }}
             - name: TELEGRAM_PIN
-              value: {{ .Values.telegram.pin | quote }}
+              value: {{ .pin | quote }}
+            {{- end }}
+            {{- end }}
             - name: TEMPLATE_STYLE
               value: {{ .Values.template.style | quote }}
             - name: TEMPLATE_LANGUAGE

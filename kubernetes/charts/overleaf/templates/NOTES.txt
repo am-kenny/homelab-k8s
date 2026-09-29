@@ -1,0 +1,77 @@
+{{- $secret := include "overleaf.secretName" . -}}
+{{- $n := 0 -}}
+Overleaf Extended CE Helm Chart Deployment
+
+{{ $n = add1 $n }}{{ $n }}. Deployment Information:
+  - Release Name: {{ .Release.Name }}
+  - Namespace: {{ .Release.Namespace }}
+  - Chart Name: {{ .Chart.Name }}
+  - Chart Version: {{ .Chart.Version }}
+  - App Version: {{ .Chart.AppVersion }}
+  - MongoDB: {{ if .Values.mongodb.enabled }}in-cluster, replica set "{{ .Values.mongodb.replicaSetName }}"{{ else }}external{{ end }}
+  - Redis: {{ if .Values.redis.enabled }}in-cluster{{ else }}external{{ end }}
+
+{{ $n = add1 $n }}{{ $n }}. Credentials:
+  - This chart does NOT create the credentials Secret.
+    It must already exist as "{{ $secret }}" in namespace {{ .Release.Namespace }}.
+    Every key in it is passed to the container as an environment variable.
+
+  - Two keys are required. The image refuses to start without them:
+      OVERLEAF_SESSION_SECRET       signs session cookies
+      OVERLEAF_INVITE_TOKEN_SECRET  signs invite and password reset tokens
+    Both must stay stable. Regenerating either invalidates what it signed.
+
+  - Create it with:
+    kubectl create secret generic {{ $secret }} -n {{ .Release.Namespace }} \
+      --from-literal=OVERLEAF_SESSION_SECRET="$(openssl rand -hex 32)" \
+      --from-literal=OVERLEAF_INVITE_TOKEN_SECRET="$(openssl rand -base64 32)"
+
+{{ $n = add1 $n }}{{ $n }}. First Start:
+  - The first boot runs database migrations and can take several minutes.
+
+  - Create the first admin account at /launchpad. That page is only open
+    until an admin exists:
+{{- if .Values.ingress.enabled }}
+{{- range .Values.ingress.hosts }}
+    http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}/launchpad
+{{- end }}
+{{- else }}
+    kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "overleaf.fullname" . }} 8080:{{ .Values.service.port }}
+    then open http://127.0.0.1:8080/launchpad
+{{- end }}
+{{- if not .Values.overleaf.siteUrl }}
+
+  - overleaf.siteUrl is unset. Links in email and in the editor will point at
+    http://localhost until it is set to the external URL.
+{{- end }}
+
+{{ $n = add1 $n }}{{ $n }}. Service:
+  - In-cluster address:
+    http://{{ include "overleaf.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+{{- if .Values.overleaf.secureCookie }}
+  - Secure cookies are on, overleaf must be served over HTTPS.
+{{- end }}
+
+{{ if .Values.persistence.enabled -}}
+{{ $n = add1 $n }}{{ $n }}. Persistence:
+  - Claim Name: {{ include "overleaf.fullname" . }}-data
+  - Mount Path: {{ .Values.persistence.mountPath }}
+  - Size: {{ .Values.persistence.size }}
+{{- if .Values.mongodb.enabled }}
+  - MongoDB Claim: data-{{ include "overleaf.mongodb.fullname" . }}-0 ({{ .Values.mongodb.persistence.size }})
+{{- end }}
+{{- if .Values.redis.enabled }}
+  - Redis Claim: data-{{ include "overleaf.redis.fullname" . }}-0 ({{ .Values.redis.persistence.size }})
+{{- end }}
+
+{{ end -}}
+
+{{ $n = add1 $n }}{{ $n }}. Clean Up:
+  - To uninstall the release:
+    helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}
+{{- if .Values.persistence.enabled }}
+
+  - No PVC is removed by uninstall. To delete those:
+    kubectl delete pvc -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+    kubectl delete pvc -n {{ .Release.Namespace }} {{ include "overleaf.fullname" . }}-data
+{{- end }}

@@ -22,3 +22,8 @@ releases:
       - values/am-pulsar/common.yaml
       - values/am-pulsar/{{ . }}.yaml
 {{- end }}
+  - name: overleaf
+    chart: ./charts/overleaf
+    namespace: overleaf
+    values:
+      - values/overleaf.yaml

@@ -1,0 +1,33 @@
+existingSecret: overleaf-secrets
+
+overleaf:
+  appName: "Overleaf Local"
+
+  emailConfirmationDisabled: true
+
+  maxUploadSizeMb: 100
+  historyRestore: true
+
+  templateGallery:
+    enabled: true
+
+persistence:
+  size: 20Gi
+
+nodeSelector:
+  kubernetes.io/hostname: am-wanderer
+
+ingress:
+  enabled: false
+
+mongodb:
+  persistence:
+    size: 8Gi
+  nodeSelector:
+    kubernetes.io/hostname: am-wanderer
+
+redis:
+  persistence:
+    size: 2Gi
+  nodeSelector:
+    kubernetes.io/hostname: am-wanderer

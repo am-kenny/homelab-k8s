@@ -1,0 +1,246 @@
+# Default values for overleaf.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Overleaf Extended CE, a community fork of Overleaf CE
+image:
+  repository: overleafcep/sharelatex
+  pullPolicy: IfNotPresent
+  tag: ""
+
+# Secret holding OVERLEAF_SESSION_SECRET,
+# OVERLEAF_EMAIL_SMTP_PASS, OVERLEAF_OIDC_CLIENT_SECRET,
+# OVERLEAF_LDAP_BIND_CREDENTIALS, OVERLEAF_REDIS_PASS.
+# Created out of band, not managed by this chart.
+existingSecret: ""
+
+overleaf:
+  # Shown in the navigation bar and in outgoing email.
+  appName: "Overleaf"
+  navTitle: ""
+  # Full external URL, needed for correct links in email and in the editor.
+  siteUrl: ""
+  adminEmail: ""
+
+  # Without SMTP no mail can be sent, so leave confirmation disabled.
+  emailConfirmationDisabled: true
+
+  # Thumbnail and preview generation through pdftocairo.
+  enableConversions: true
+  linkedFileTypes: "project_file,project_output_file"
+
+  # Maximum size of an uploaded project or file, in MB. Raise the ingress body
+  # limit to match, see ingress.annotations below.
+  maxUploadSizeMb: 50
+
+  # Restore a project or a file from a history snapshot.
+  historyRestore: false
+
+  # Experimental upstream features by Extended CE.
+  editorTabs: false
+  pandocConversions: false
+
+  secureCookie: false
+  trustedProxyIps: ""
+
+  templateGallery:
+    enabled: false
+    nonAdminCanPublish: false
+    # Whitespace separated category keys, for example
+    # "academic-journal book presentation poster cv thesis".
+    categories: ""
+    # ID of a non-admin user allowed to manage every template.
+    managerUserId: ""
+
+  registration:
+    # Self-registration page at /register, added by Extended CE.
+    enabled: false
+    # Whitespace separated list of domains allowed to register.
+    allowedEmailDomains: ""
+
+  email:
+    fromAddress: ""
+    customFooter: ""
+    smtp:
+      host: ""
+      port: 587
+      secure: false
+      user: ""
+      name: ""
+      ignoreTls: false
+      tlsRejectUnauthorized: true
+
+  auth:
+    # Whitespace separated list of external authentication modules, for
+    # example "oidc", "ldap" or "ldap oidc". Use "none" to disable.
+    external: "none"
+    # Consumed when auth.external contains "oidc". The first five values come
+    # from the .well-known/openid-configuration endpoint of the provider.
+    oidc:
+      issuer: ""
+      authorizationUrl: ""
+      tokenUrl: ""
+      userInfoUrl: ""
+      logoutUrl: ""
+      clientId: ""
+      scope: "openid profile email"
+      providerId: "oidc"
+      providerName: ""
+      identityServiceName: ""
+      # Claim used as the external user ID. "id", "email" or "username".
+      userIdField: ""
+      allowedEmailDomains: ""
+      updateUserDetailsOnLogin: false
+      isAdminField: ""
+      isAdminFieldValue: ""
+
+  # Sandboxed compiles run every project in its own container and need a
+  # Docker daemon socket. k3s runs containerd, so this cannot be enabled here.
+  # Leave it false unless the nodes also run Docker.
+  sandboxedCompiles: false
+
+  # Any other variable from the upstream and Extended CE documentation.
+  # Values are rendered into the ConfigMap as strings.
+  extraEnv: {}
+
+persistence:
+  enabled: true
+  storageClass: ""
+  size: 20Gi
+  mountPath: /var/lib/overleaf
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: overleaf.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# The container boots runit, nginx and a dozen Node services as root, so it
+# cannot run with a hardened context or a read-only root filesystem.
+podSecurityContext: {}
+securityContext: {}
+
+# First boot runs migrations and can take several minutes, hence the long
+# startup budget. The endpoint is the web service status route.
+probes:
+  enabled: true
+  path: /status
+  startup:
+    periodSeconds: 10
+    failureThreshold: 60
+  readiness:
+    periodSeconds: 10
+    failureThreshold: 3
+  liveness:
+    periodSeconds: 30
+    failureThreshold: 5
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 2Gi
+
+# Services shut down over roughly a minute, see KILL_PROCESS_TIMEOUT.
+terminationGracePeriodSeconds: 70
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  automount: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+mongodb:
+  # Disable to point Overleaf at an existing MongoDB, see externalMongodb.
+  enabled: true
+  image:
+    repository: mongo
+    tag: "8.3"
+    pullPolicy: IfNotPresent
+  # Overleaf uses transactions, so MongoDB has to run as a replica set even
+  # with a single member. The set is initiated by a postStart hook.
+  replicaSetName: overleaf
+  database: sharelatex
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 8Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Used when mongodb.enabled is false.
+externalMongodb:
+  # Full connection string, for example
+  # mongodb://mongo.db.svc.cluster.local:27017/sharelatex?replicaSet=overleaf
+  url: ""
+
+redis:
+  # Disable to point Overleaf at an existing Redis, see externalRedis.
+  enabled: true
+  image:
+    repository: redis
+    tag: "8.10-alpine"
+    pullPolicy: IfNotPresent
+  # Append-only persistence, match the Overleaf Toolkit default.
+  appendOnly: true
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 2Gi
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Used when redis.enabled is false.
+externalRedis:
+  host: ""
+  port: 6379

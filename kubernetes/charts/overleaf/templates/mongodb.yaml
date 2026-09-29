@@ -1,0 +1,132 @@
+{{- if .Values.mongodb.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "overleaf.mongodb.fullname" . }}
+  labels:
+    {{- include "overleaf.mongodb.labels" . | nindent 4 }}
+spec:
+  # Headless, so the member keeps the stable name used in rs.initiate.
+  clusterIP: None
+  ports:
+    - name: mongodb
+      port: 27017
+      targetPort: mongodb
+      protocol: TCP
+  selector:
+    {{- include "overleaf.mongodb.selectorLabels" . | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "overleaf.mongodb.fullname" . }}
+  labels:
+    {{- include "overleaf.mongodb.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "overleaf.mongodb.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "overleaf.mongodb.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "overleaf.mongodb.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      {{- with .Values.mongodb.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: mongodb
+          image: "{{ .Values.mongodb.image.repository }}:{{ .Values.mongodb.image.tag }}"
+          imagePullPolicy: {{ .Values.mongodb.image.pullPolicy }}
+          {{- with .Values.mongodb.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          args:
+            - --replSet
+            - {{ .Values.mongodb.replicaSetName }}
+            - --bind_ip_all
+          ports:
+            - name: mongodb
+              containerPort: 27017
+              protocol: TCP
+          lifecycle:
+            postStart:
+              exec:
+                # Initiating the set from a hook keeps it idempotent: on every
+                # later start rs.status succeeds and nothing is changed.
+                command:
+                  - /bin/sh
+                  - -c
+                  - |
+                    until mongosh --quiet --eval 'db.adminCommand({ ping: 1 })' >/dev/null 2>&1; do
+                      sleep 2
+                    done
+                    mongosh --quiet --eval 'try { rs.status() } catch (e) { rs.initiate({ _id: "{{ .Values.mongodb.replicaSetName }}", members: [ { _id: 0, host: "{{ include "overleaf.mongodb.host" . }}:27017" } ] }) }'
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  mongosh --quiet --eval 'db.adminCommand({ ping: 1 }).ok' | grep -q 1
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: mongodb
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 5
+          {{- with .Values.mongodb.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+      {{- if not .Values.mongodb.persistence.enabled }}
+      volumes:
+        - name: data
+          emptyDir: {}
+      {{- end }}
+      {{- with .Values.mongodb.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mongodb.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mongodb.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if .Values.mongodb.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          {{- include "overleaf.mongodb.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        {{- with .Values.mongodb.persistence.storageClass }}
+        storageClassName: {{ . }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.mongodb.persistence.size }}
+  {{- end }}
+{{- end }}
+

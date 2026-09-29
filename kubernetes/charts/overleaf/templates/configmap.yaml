@@ -1,0 +1,132 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "overleaf.fullname" . }}-env
+  labels:
+    {{- include "overleaf.labels" . | nindent 4 }}
+data:
+  # Datastores
+  OVERLEAF_MONGO_URL: {{ include "overleaf.mongodb.url" . | quote }}
+  OVERLEAF_REDIS_HOST: {{ include "overleaf.redis.host" . | quote }}
+  OVERLEAF_REDIS_PORT: {{ include "overleaf.redis.port" . | quote }}
+  # The real-time and document-updater services read the unprefixed names.
+  REDIS_HOST: {{ include "overleaf.redis.host" . | quote }}
+  REDIS_PORT: {{ include "overleaf.redis.port" . | quote }}
+  # Every service lives in this one container, so history is reached locally.
+  V1_HISTORY_URL: "http://127.0.0.1:3100/api"
+
+  # Branding and contact
+  OVERLEAF_APP_NAME: {{ .Values.overleaf.appName | quote }}
+  {{- with .Values.overleaf.navTitle }}
+  OVERLEAF_NAV_TITLE: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.overleaf.siteUrl }}
+  OVERLEAF_SITE_URL: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.overleaf.adminEmail }}
+  OVERLEAF_ADMIN_EMAIL: {{ . | quote }}
+  {{- end }}
+
+  # Behaviour
+  EMAIL_CONFIRMATION_DISABLED: {{ .Values.overleaf.emailConfirmationDisabled | quote }}
+  ENABLE_CONVERSIONS: {{ .Values.overleaf.enableConversions | quote }}
+  ENABLED_LINKED_FILE_TYPES: {{ .Values.overleaf.linkedFileTypes | quote }}
+  MAX_UPLOAD_SIZE: {{ .Values.overleaf.maxUploadSizeMb | quote }}
+  OVERLEAF_HISTORY_RESTORE: {{ .Values.overleaf.historyRestore | quote }}
+  ENABLE_EDITOR_TABS: {{ .Values.overleaf.editorTabs | quote }}
+  ENABLE_PANDOC_CONVERSIONS: {{ .Values.overleaf.pandocConversions | quote }}
+  {{- if .Values.overleaf.secureCookie }}
+  OVERLEAF_SECURE_COOKIE: "true"
+  {{- end }}
+  {{- with .Values.overleaf.trustedProxyIps }}
+  OVERLEAF_TRUSTED_PROXY_IPS: {{ . | quote }}
+  {{- end }}
+
+  # Compiles. Sibling containers need a Docker socket, which k3s does not have.
+  SANDBOXED_COMPILES: {{ .Values.overleaf.sandboxedCompiles | quote }}
+  DOCKER_RUNNER: {{ .Values.overleaf.sandboxedCompiles | quote }}
+  GIT_BRIDGE_ENABLED: "false"
+
+  # Template gallery
+  OVERLEAF_TEMPLATE_GALLERY: {{ .Values.overleaf.templateGallery.enabled | quote }}
+  {{- if .Values.overleaf.templateGallery.enabled }}
+  OVERLEAF_NON_ADMIN_CAN_PUBLISH_TEMPLATES: {{ .Values.overleaf.templateGallery.nonAdminCanPublish | quote }}
+  {{- with .Values.overleaf.templateGallery.categories }}
+  OVERLEAF_TEMPLATE_CATEGORIES: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.overleaf.templateGallery.managerUserId }}
+  OVERLEAF_TEMPLATES_USER_ID: {{ . | quote }}
+  {{- end }}
+  {{- end }}
+
+  # Self-registration page
+  OVERLEAF_ENABLE_REGISTRATION_PAGE: {{ .Values.overleaf.registration.enabled | quote }}
+  {{- with .Values.overleaf.registration.allowedEmailDomains }}
+  OVERLEAF_ALLOWED_REGISTRATION_EMAIL_DOMAINS: {{ . | quote }}
+  {{- end }}
+
+{{- if or .Values.overleaf.email.fromAddress .Values.overleaf.email.smtp.host }}
+
+  # Outgoing email
+  {{- with .Values.overleaf.email.fromAddress }}
+  OVERLEAF_EMAIL_FROM_ADDRESS: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.overleaf.email.customFooter }}
+  OVERLEAF_CUSTOM_EMAIL_FOOTER: {{ . | quote }}
+  {{- end }}
+  {{- if .Values.overleaf.email.smtp.host }}
+  {{- $smtp := .Values.overleaf.email.smtp }}
+  OVERLEAF_EMAIL_SMTP_HOST: {{ $smtp.host | quote }}
+  OVERLEAF_EMAIL_SMTP_PORT: {{ $smtp.port | quote }}
+  OVERLEAF_EMAIL_SMTP_SECURE: {{ $smtp.secure | quote }}
+  OVERLEAF_EMAIL_SMTP_IGNORE_TLS: {{ $smtp.ignoreTls | quote }}
+  OVERLEAF_EMAIL_SMTP_TLS_REJECT_UNAUTH: {{ $smtp.tlsRejectUnauthorized | quote }}
+  {{- with $smtp.user }}
+  OVERLEAF_EMAIL_SMTP_USER: {{ . | quote }}
+  {{- end }}
+  {{- with $smtp.name }}
+  OVERLEAF_EMAIL_SMTP_NAME: {{ . | quote }}
+  {{- end }}
+  {{- end }}
+{{- end }}
+
+  # External authentication
+  EXTERNAL_AUTH: {{ .Values.overleaf.auth.external | quote }}
+  {{- if contains "oidc" .Values.overleaf.auth.external }}
+  {{- $oidc := .Values.overleaf.auth.oidc }}
+  OVERLEAF_OIDC_ISSUER: {{ required "overleaf.auth.oidc.issuer is required when oidc is enabled" $oidc.issuer | quote }}
+  OVERLEAF_OIDC_AUTHORIZATION_URL: {{ required "overleaf.auth.oidc.authorizationUrl is required when oidc is enabled" $oidc.authorizationUrl | quote }}
+  OVERLEAF_OIDC_TOKEN_URL: {{ required "overleaf.auth.oidc.tokenUrl is required when oidc is enabled" $oidc.tokenUrl | quote }}
+  OVERLEAF_OIDC_USER_INFO_URL: {{ required "overleaf.auth.oidc.userInfoUrl is required when oidc is enabled" $oidc.userInfoUrl | quote }}
+  OVERLEAF_OIDC_LOGOUT_URL: {{ required "overleaf.auth.oidc.logoutUrl is required when oidc is enabled" $oidc.logoutUrl | quote }}
+  OVERLEAF_OIDC_CLIENT_ID: {{ required "overleaf.auth.oidc.clientId is required when oidc is enabled" $oidc.clientId | quote }}
+  OVERLEAF_OIDC_SCOPE: {{ $oidc.scope | quote }}
+  OVERLEAF_OIDC_PROVIDER_ID: {{ $oidc.providerId | quote }}
+  OVERLEAF_OIDC_UPDATE_USER_DETAILS_ON_LOGIN: {{ $oidc.updateUserDetailsOnLogin | quote }}
+  {{- with $oidc.providerName }}
+  OVERLEAF_OIDC_PROVIDER_NAME: {{ . | quote }}
+  {{- end }}
+  {{- with $oidc.identityServiceName }}
+  OVERLEAF_OIDC_IDENTITY_SERVICE_NAME: {{ . | quote }}
+  {{- end }}
+  {{- with $oidc.userIdField }}
+  OVERLEAF_OIDC_USER_ID_FIELD: {{ . | quote }}
+  {{- end }}
+  {{- with $oidc.allowedEmailDomains }}
+  OVERLEAF_OIDC_ALLOWED_EMAIL_DOMAINS: {{ . | quote }}
+  {{- end }}
+  {{- with $oidc.isAdminField }}
+  OVERLEAF_OIDC_IS_ADMIN_FIELD: {{ . | quote }}
+  {{- end }}
+  {{- with $oidc.isAdminFieldValue }}
+  OVERLEAF_OIDC_IS_ADMIN_FIELD_VALUE: {{ . | quote }}
+  {{- end }}
+  {{- end }}
+
+  {{- with .Values.overleaf.extraEnv }}
+
+  # Extra variables
+  {{- range $key, $value := . }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }} 

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: overleaf
+description: Overleaf Extended CE (yu-i-i/overleaf-cep)
+
+type: application
+
+version: 0.1.0
+
+appVersion: "6.2.0-ext-v5.0"

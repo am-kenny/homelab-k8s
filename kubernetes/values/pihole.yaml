@@ -1,0 +1,40 @@
+image:
+  tag: 2026.09
+
+dnsmasq:
+  customDnsEntries:
+    - address=/lan/192.168.178.11
+
+persistentVolumeClaim:
+  enabled: true
+  size: 1Gi
+
+serviceWeb:
+  type: ClusterIP
+  https:
+    enabled: false
+
+serviceDns:
+  type: LoadBalancer
+  mixedService: true
+  externalTrafficPolicy: Local
+
+serviceDhcp:
+  enabled: false
+
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  hosts:
+    - pihole.lan
+  path: /
+
+nodeSelector:
+  kubernetes.io/hostname: am-server
+
+DNS1: "9.9.9.9"
+DNS2: "149.112.112.112"
+
+admin:
+  existingSecret: pihole-admin
+  passwordKey: password

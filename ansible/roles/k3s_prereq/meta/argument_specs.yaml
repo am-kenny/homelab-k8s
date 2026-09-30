@@ -1,0 +1,18 @@
+argument_specs:
+  main:
+    short_description: Prepare a node for k3s
+    author: Andrii Prykhodko
+    options:
+      k3s_prereq_node_type:
+        type: str
+        default: agent
+        choices: [server, agent]
+        description: Whether this node runs the control plane or joins as a worker.
+      k3s_prereq_cluster_cidr:
+        type: str
+        default: "10.42.0.0/16"
+        description: Pod CIDR, added to the firewalld trusted zone.
+      k3s_prereq_service_cidr:
+        type: str
+        default: "10.43.0.0/16"
+        description: Service CIDR, added to the firewalld trusted zone.

@@ -5,7 +5,7 @@ argument_specs:
     options:
       k3s_node_type:
         type: str
-        default: server
+        default: agent
         choices: [server, agent]
         description: Whether this node runs the control plane or joins as a worker.
       k3s_version:

@@ -1,7 +1,9 @@
 image:
-  tag: 2026.09
+  tag: "2026.09.0"
 
 dnsmasq:
+  upstreamServers:
+    - server=/fritz.box/192.168.178.1
   customDnsEntries:
     - address=/lan/192.168.178.11
 

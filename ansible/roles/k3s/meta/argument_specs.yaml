@@ -10,7 +10,7 @@ argument_specs:
         description: Whether this node runs the control plane or joins as a worker.
       k3s_version:
         type: str
-        default: ""
+        default: "v1.36.3+k3s1"
         description: k3s version to install.
       k3s_server_group:
         type: str

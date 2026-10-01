@@ -40,3 +40,6 @@ DNS2: "149.112.112.112"
 admin:
   existingSecret: pihole-admin
   passwordKey: password
+
+ftl:
+  dns_specialDomains_iCloudPrivateRelay: "false"

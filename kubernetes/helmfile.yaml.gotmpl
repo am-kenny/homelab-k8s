@@ -13,7 +13,19 @@ helmDefaults:
 
 ---
 
+repositories:
+  - name: mojo2600
+    url: https://mojo2600.github.io/pihole-kubernetes/
+
+---
+
 releases:
+  - name: pihole
+    chart: mojo2600/pihole
+    version: 2.38.0
+    namespace: pihole
+    values:
+      - values/pihole.yaml
 {{- range .Values.instances }}
   - name: am-pulsar-{{ . }}
     chart: ./charts/am-pulsar

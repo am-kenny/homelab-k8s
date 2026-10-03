@@ -1,0 +1,61 @@
+image:
+  tag: v2.4.0
+
+enableRbac: true
+serviceAccount:
+  create: true
+
+env:
+  - name: HOMEPAGE_ALLOWED_HOSTS
+    value: homepage.lan
+
+envFrom:
+  - secretRef:
+      name: homepage-secrets
+
+ingress:
+  main:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - host: homepage.lan
+        paths:
+          - path: /
+            pathType: Prefix
+
+nodeSelector:
+  kubernetes.io/hostname: am-server
+
+config:
+  kubernetes:
+    mode: cluster
+  settings:
+    title: AmHome
+    theme: dark
+  widgets:
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+    - search:
+        provider: duckduckgo
+  services:
+    - Infrastructure:
+        - Pi-hole:
+            href: http://pihole.lan/admin
+            icon: pi-hole.png
+            widget:
+              type: pihole
+              version: 6
+              url: http://pihole-web.pihole.svc.cluster.local
+              key: "{{HOMEPAGE_VAR_PIHOLE_KEY}}"
+    - Apps:
+        - Overleaf:
+            href: http://overleaf.lan
+            icon: overleaf.png
+  bookmarks: []

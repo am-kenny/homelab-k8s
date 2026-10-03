@@ -15,7 +15,8 @@ helmDefaults:
 
 repositories:
   - name: mojo2600
-    url: https://mojo2600.github.io/pihole-kubernetes/
+  - name: jameswynn
+    url: https://jameswynn.github.io/helm-charts
 
 ---
 
@@ -39,3 +40,9 @@ releases:
     namespace: overleaf
     values:
       - values/overleaf.yaml
+  - name: homepage
+    chart: jameswynn/homepage
+    version: 2.1.0
+    namespace: homepage
+    values:
+      - values/homepage.yaml

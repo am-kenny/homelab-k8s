@@ -15,8 +15,11 @@ helmDefaults:
 
 repositories:
   - name: mojo2600
+    url: https://mojo2600.github.io/pihole-kubernetes/
   - name: jameswynn
     url: https://jameswynn.github.io/helm-charts
+  - name: k8sgpt
+    url: https://charts.k8sgpt.ai/
 
 ---
 
@@ -46,3 +49,14 @@ releases:
     namespace: homepage
     values:
       - values/homepage.yaml
+  - name: k8sgpt-operator
+    chart: k8sgpt/k8sgpt-operator
+    version: 0.2.29
+    namespace: k8sgpt
+  - name: k8sgpt
+    chart: ./charts/k8sgpt
+    namespace: k8sgpt
+    needs:
+      - k8sgpt/k8sgpt-operator
+    values:
+      - values/k8sgpt.yaml

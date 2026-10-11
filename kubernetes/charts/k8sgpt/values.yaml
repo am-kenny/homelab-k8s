@@ -1,0 +1,51 @@
+# Default values for k8sgpt.
+
+image:
+  repository: ghcr.io/k8sgpt-ai/k8sgpt
+  tag: ""
+  pullPolicy: IfNotPresent
+
+llm:
+  serviceName: llm
+  address: ""
+  port: 11434
+  model: "gemma4:12b"
+  # Response limit
+  maxTokens: 4096
+  anonymized: false
+  language: english
+
+analysis:
+  # Time between analysis runs
+  interval: 5m
+  # Reuse explanations for findings that were already explained
+  noCache: false
+  # Analyzers to run. Empty runs the default set (Pod, Deployment, ReplicaSet,
+  # PersistentVolumeClaim, Service, Ingress, StatefulSet, Job, CronJob, Node,
+  # ValidatingWebhookConfiguration, MutatingWebhookConfiguration, ConfigMap).
+  filters: []
+  # Limit analysis to one namespace. Empty analyzes the whole cluster.
+  targetNamespace: ""
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+nodeSelector: {}
+
+nameOverride: ""
+fullnameOverride: ""

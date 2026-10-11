@@ -1,0 +1,36 @@
+{{- /*
+Ollama runs on a machine outside the cluster.
+A Service without selector plus an EndpointSlice gives it a stable in-cluster DNS name.
+*/ -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.llm.serviceName }}
+  labels:
+    {{- include "k8sgpt.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ .Values.llm.port }}
+      targetPort: {{ .Values.llm.port }}
+      protocol: TCP
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: {{ .Values.llm.serviceName }}-external
+  labels:
+    {{- include "k8sgpt.labels" . | nindent 4 }}
+    kubernetes.io/service-name: {{ .Values.llm.serviceName }}
+    endpointslice.kubernetes.io/managed-by: {{ .Release.Name }}.helm
+addressType: IPv4
+ports:
+  - name: http
+    port: {{ .Values.llm.port }}
+    protocol: TCP
+endpoints:
+  - addresses:
+      - {{ required "llm.address is required (IP of the machine running Ollama)" .Values.llm.address | quote }}
+    conditions:
+      ready: true

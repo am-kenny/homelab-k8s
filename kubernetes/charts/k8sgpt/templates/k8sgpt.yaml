@@ -1,0 +1,46 @@
+apiVersion: core.k8sgpt.ai/v1alpha1
+kind: K8sGPT
+metadata:
+  name: {{ include "k8sgpt.fullname" . }}
+  labels:
+    {{- include "k8sgpt.labels" . | nindent 4 }}
+spec:
+  repository: {{ .Values.image.repository }}
+  version: {{ .Values.image.tag | default .Chart.AppVersion }}
+  imagePullPolicy: {{ .Values.image.pullPolicy }}
+  ai:
+    enabled: true
+    # The operator has no Ollama backend. "localai" is K8sGPT's generic
+    # OpenAI compatible client and needs no API key.
+    backend: localai
+    baseUrl: {{ printf "http://%s.%s.svc.cluster.local:%v/v1" .Values.llm.serviceName .Release.Namespace .Values.llm.port | quote }}
+    model: {{ required "llm.model is required" .Values.llm.model | quote }}
+    maxTokens: {{ .Values.llm.maxTokens | quote }}
+    anonymized: {{ .Values.llm.anonymized }}
+    language: {{ .Values.llm.language }}
+  analysis:
+    interval: {{ .Values.analysis.interval }}
+  noCache: {{ .Values.analysis.noCache }}
+  {{- with .Values.analysis.filters }}
+  filters:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.analysis.targetNamespace }}
+  targetNamespace: {{ . }}
+  {{- end }}
+  {{- with .Values.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.podSecurityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.containerSecurityContext }}
+  containerSecurityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.nodeSelector }}
+  nodeSelector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}

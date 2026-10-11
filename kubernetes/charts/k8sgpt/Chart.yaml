@@ -1,0 +1,9 @@
+apiVersion: v2
+name: k8sgpt
+description: K8sGPT instance for the k8sgpt-operator
+
+type: application
+
+version: 0.1.0
+
+appVersion: "v0.4.40"

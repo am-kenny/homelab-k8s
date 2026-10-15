@@ -1,0 +1,7 @@
+apiVersion: v2
+name: certificates
+description: Let's Encrypt issuers and certificates for the cluster
+
+type: application
+
+version: 0.1.0

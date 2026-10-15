@@ -5,7 +5,6 @@ dnsmasq:
   upstreamServers:
     - server=/fritz.box/192.168.178.1
   customDnsEntries:
-    - address=/lan/192.168.178.11
     - address=/amhome.app/192.168.178.11
 
 persistentVolumeClaim:
@@ -29,7 +28,6 @@ ingress:
   enabled: true
   ingressClassName: traefik
   hosts:
-    - pihole.lan
     - pihole.amhome.app
   path: /
 

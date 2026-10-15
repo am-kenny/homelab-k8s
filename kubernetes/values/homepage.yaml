@@ -7,7 +7,7 @@ serviceAccount:
 
 env:
   - name: HOMEPAGE_ALLOWED_HOSTS
-    value: homepage.lan
+    value: homepage.amhome.app
 
 envFrom:
   - secretRef:
@@ -18,7 +18,7 @@ ingress:
     enabled: true
     ingressClassName: traefik
     hosts:
-      - host: homepage.lan
+      - host: homepage.amhome.app
         paths:
           - path: /
             pathType: Prefix
@@ -47,7 +47,7 @@ config:
   services:
     - Infrastructure:
         - Pi-hole:
-            href: http://pihole.lan/admin
+            href: https://pihole.amhome.app/admin
             icon: pi-hole.png
             widget:
               type: pihole
@@ -56,6 +56,6 @@ config:
               key: "{{HOMEPAGE_VAR_PIHOLE_KEY}}"
     - Apps:
         - Overleaf:
-            href: http://overleaf.lan
+            href: https://overleaf.amhome.app
             icon: overleaf.png
   bookmarks: []

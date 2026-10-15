@@ -24,6 +24,20 @@ repositories:
 ---
 
 releases:
+  - name: cert-manager
+    chart: oci://quay.io/jetstack/charts/cert-manager
+    version: 1.21.2
+    namespace: cert-manager
+    values:
+      - values/cert-manager.yaml
+  - name: certificates
+    chart: ./charts/certificates
+    namespace: cert-manager
+    needs:
+      - cert-manager/cert-manager
+    # No cert-manager CRDs exist on fresh install
+    disableValidationOnInstall: true
+
   - name: pihole
     chart: mojo2600/pihole
     version: 2.38.0

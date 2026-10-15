@@ -1,2 +1,5 @@
 crds:
   enabled: true
+
+# Ensure DNS-01 TXT records are resolved correctly
+dns01RecursiveNameservers: "1.1.1.1:53,1.0.0.1:53"

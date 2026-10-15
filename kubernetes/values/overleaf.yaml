@@ -1,8 +1,9 @@
 existingSecret: overleaf-secrets
 
 overleaf:
-  appName: "Overleaf Local"
-  siteUrl: "http://overleaf.lan"
+  appName: "AmOverleaf"
+  siteUrl: "https://overleaf.amhome.app"
+  secureCookie: true
 
   emailConfirmationDisabled: true
 
@@ -22,11 +23,10 @@ ingress:
   enabled: true
   className: traefik
   hosts:
-    - host: overleaf.lan
+    - host: overleaf.amhome.app
       paths:
         - path: /
           pathType: Prefix
-
 
 mongodb:
   persistence:

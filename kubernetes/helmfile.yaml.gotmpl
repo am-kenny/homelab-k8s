@@ -24,6 +24,12 @@ repositories:
 ---
 
 releases:
+  - name: cert-manager
+    chart: oci://quay.io/jetstack/charts/cert-manager
+    version: 1.21.2
+    namespace: cert-manager
+    values:
+      - values/cert-manager.yaml
   - name: pihole
     chart: mojo2600/pihole
     version: 2.38.0

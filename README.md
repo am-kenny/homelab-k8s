@@ -66,7 +66,7 @@ You will need Ansible, kubectl, Helm with the [helm-diff](https://github.com/dat
 
 Provisioning with Ansible is described in [`ansible/README.md`](ansible/README.md).
 
-The `kubeconfig` is created at `/etc/rancher/k3s/k3s.yaml` on the server node.
+The `kubeconfig` is created at `/etc/rancher/k3s/k3s.yaml` on the server node. Before running `kubectl` or `helmfile` from your local machine, securely copy it to a local file, restrict its permissions with `chmod 600` and replace `127.0.0.1` in its API server URL with the server's reachable LAN IP or hostname. Export `KUBECONFIG` to the copied file's local path and confirm that `kubectl get nodes` succeeds before continuing.
 
 ### 2. Create the required secrets
 

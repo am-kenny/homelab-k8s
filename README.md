@@ -77,7 +77,7 @@ Create each namespace, then its secret:
 | `cloudflare-api-token` | `cert-manager` | `api-token` |
 | `pihole-admin` | `pihole` | `password` |
 | `homepage-secrets` | `homepage` | `HOMEPAGE_VAR_PIHOLE_KEY` |
-| `overleaf-secrets` | `overleaf` | `OVERLEAF_SESSION_SECRET` |
+| `overleaf-secrets` | `overleaf` | `OVERLEAF_SESSION_SECRET`, `OVERLEAF_INVITE_TOKEN_SECRET` |
 | `am-pulsar-secrets` | `am-pulsar` | `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `TELEGRAM_BOT_TOKEN` |
 
 ### 3. Deploy

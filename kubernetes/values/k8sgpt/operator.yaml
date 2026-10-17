@@ -1,0 +1,8 @@
+# Operator metrics
+serviceMonitor:
+  enabled: true
+  additionalLabels: {release: kube-prometheus-stack}
+
+# Dashboard ConfigMap
+grafanaDashboard:
+  enabled: true

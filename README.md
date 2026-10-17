@@ -37,7 +37,7 @@ Outside the cluster, my desktop PC runs Ollama as the LLM backend for K8sGPT.
 | Ingress | Traefik (bundled with k3s) |
 | Certificates | cert-manager with a Let's Encrypt issuer via Cloudflare DNS-01 |
 | DNS | Pi-hole |
-| Monitoring | K8sGPT |
+| Monitoring | Prometheus and Grafana (kube-prometheus-stack), K8sGPT |
 
 ## Services
 
@@ -47,6 +47,8 @@ Outside the cluster, my desktop PC runs Ollama as the LLM backend for K8sGPT.
 | [Homepage](https://gethomepage.dev) | Dashboard with widgets | `am-server` |
 | [Overleaf](https://github.com/yu-i-i/overleaf-cep) | LaTeX editor (Extended CE) | `am-wanderer` |
 | [AmPulsar](https://github.com/am-kenny/ampulsar) | Twitch and TikTok live notifications to Telegram | Any |
+| [Grafana](https://grafana.com) | Dashboards for cluster and node metrics | `am-server` |
+| [Prometheus](https://prometheus.io) | Metrics collection | `am-server` |
 | [K8sGPT](https://k8sgpt.ai) | Scans the cluster for issues | Any |
 | [cert-manager](https://cert-manager.io) | Issues and renews certificates | Any |
 
@@ -78,6 +80,7 @@ Create each namespace, then its secret:
 | `pihole-admin` | `pihole` | `password` |
 | `homepage-secrets` | `homepage` | `HOMEPAGE_VAR_PIHOLE_KEY` |
 | `overleaf-secrets` | `overleaf` | `OVERLEAF_SESSION_SECRET`, `OVERLEAF_INVITE_TOKEN_SECRET` |
+| `grafana-admin` | `monitoring` | `admin-user`, `admin-password` |
 | `am-pulsar-secrets` | `am-pulsar` | `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `TELEGRAM_BOT_TOKEN` |
 
 ### 3. Deploy

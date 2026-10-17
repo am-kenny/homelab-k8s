@@ -38,6 +38,26 @@ releases:
     # No cert-manager CRDs exist on fresh install
     disableValidationOnInstall: true
 
+  - name: prometheus-operator-crds
+    chart: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds
+    version: 32.0.1
+    namespace: monitoring
+    values:
+      - crds:
+          annotations:
+            # Keep CRDs on release removal
+            helm.sh/resource-policy: keep
+  - name: kube-prometheus-stack
+    chart: oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
+    version: 92.10.1
+    namespace: monitoring
+    needs:
+      - monitoring/prometheus-operator-crds
+    # No Prometheus operator CRDs exist on fresh install
+    disableValidationOnInstall: true
+    values:
+      - values/kube-prometheus-stack.yaml
+
   - name: pihole
     chart: mojo2600/pihole
     version: 2.38.0

@@ -1,0 +1,55 @@
+# CRDs are managed with a separate release
+crds:
+  enabled: false
+
+# k3s runs the scheduler, controller manager and kube-proxy inside the k3s
+# process and this cluster stores state in SQLite.
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+kubeEtcd:
+  enabled: false
+
+alertmanager:
+  enabled: false
+
+prometheusOperator:
+  nodeSelector:
+    kubernetes.io/hostname: am-server
+
+kube-state-metrics:
+  nodeSelector:
+    kubernetes.io/hostname: am-server
+
+prometheus:
+  prometheusSpec:
+    nodeSelector:
+      kubernetes.io/hostname: am-server
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+
+grafana:
+  nodeSelector:
+    kubernetes.io/hostname: am-server
+  admin:
+    existingSecret: grafana-admin
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - grafana.amhome.app
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    size: 1Gi
+

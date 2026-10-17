@@ -83,14 +83,21 @@ releases:
     namespace: homepage
     values:
       - values/homepage.yaml
+
   - name: k8sgpt-operator
     chart: k8sgpt/k8sgpt-operator
     version: 0.2.29
     namespace: k8sgpt
+    needs:
+      - monitoring/prometheus-operator-crds
+    # No Prometheus operator CRDs exist on fresh install
+    disableValidationOnInstall: true
+    values:
+      - values/k8sgpt/operator.yaml
   - name: k8sgpt
     chart: ./charts/k8sgpt
     namespace: k8sgpt
     needs:
       - k8sgpt/k8sgpt-operator
     values:
-      - values/k8sgpt.yaml
+      - values/k8sgpt/values.yaml

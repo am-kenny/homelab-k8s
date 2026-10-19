@@ -20,6 +20,8 @@ repositories:
     url: https://jameswynn.github.io/helm-charts
   - name: k8sgpt
     url: https://charts.k8sgpt.ai/
+  - name: couchdb
+    url: https://apache.github.io/couchdb-helm
 
 ---
 
@@ -83,6 +85,13 @@ releases:
     namespace: homepage
     values:
       - values/homepage.yaml
+  # Obsidian sync
+  - name: couchdb
+    chart: couchdb/couchdb
+    version: 4.6.3
+    namespace: obsidian
+    values:
+      - values/couchdb.yaml
 
   - name: k8sgpt-operator
     chart: k8sgpt/k8sgpt-operator

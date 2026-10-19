@@ -1,0 +1,37 @@
+clusterSize: 1
+
+createAdminSecret: false
+extraSecretName: couchdb-admin
+
+persistentVolume:
+  enabled: true
+  size: 5Gi
+
+nodeSelector:
+  kubernetes.io/hostname: am-wanderer
+
+ingress:
+  enabled: true
+  className: traefik
+  hosts:
+    - notes.amhome.app
+
+# Settings required by LiveSync
+couchdbConfig:
+  couchdb:
+    # Should stay the same
+    uuid: af1f5743ae1b0ac6ae0e6f3e3eb12d7d
+    single_node: true
+    max_document_size: 50000000
+  chttpd:
+    require_valid_user: true
+    enable_cors: true
+    max_http_request_size: 4294967296
+  chttpd_auth:
+    require_valid_user: true
+  httpd:
+    WWW-Authenticate: 'Basic realm="couchdb"'
+    enable_cors: true
+  cors:
+    origins: app://obsidian.md,capacitor://localhost,http://localhost
+    credentials: true

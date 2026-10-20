@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HELM_VERSION: v4.3.1
+  HELMFILE_VERSION: v1.8.2
+
+jobs:
+  helmfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Lint releases
+        uses: helmfile/helmfile-action@v2.4.8
+        with:
+          helm-version: ${{ env.HELM_VERSION }}
+          helmfile-version: ${{ env.HELMFILE_VERSION }}
+          helmfile-workdirectory: kubernetes
+          helmfile-args: lint
+
+      - name: Render releases
+        uses: helmfile/helmfile-action@v2.4.8
+        with:
+          helm-version: ${{ env.HELM_VERSION }}
+          helmfile-version: ${{ env.HELMFILE_VERSION }}
+          helmfile-workdirectory: kubernetes
+          helmfile-args: >-
+            template --include-crds --skip-tests --output-dir ${{ github.workspace }}/rendered
+
+      - name: Validate rendered manifests
+        uses: docker://ghcr.io/yannh/kubeconform:v0.8.0
+        with:
+          entrypoint: '/kubeconform'
+          args: >-
+            -strict
+            -summary
+            -ignore-missing-schemas
+            -kubernetes-version 1.34.0
+            -schema-location default
+            -schema-location https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json
+            rendered

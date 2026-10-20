@@ -1,3 +1,4 @@
+---
 argument_specs:
   main:
     short_description: Set up bonded network with Wi-Fi failover
@@ -8,43 +9,43 @@ argument_specs:
     author: Andrii Prykhodko
     options:
       eth_interface:
-          type: "str"
-          required: true
+        type: "str"
+        required: true
       wifi_interface:
-          type: "str"
-          required: true
+        type: "str"
+        required: true
       wifi_ssid:
-          type: "str"
-          required: true
+        type: "str"
+        required: true
       wifi_psk:
-          type: "str"
-          required: true
+        type: "str"
+        required: true
       wifi_country:
-          type: "str"
-          required: false
-          default: "DE"
+        type: "str"
+        required: false
+        default: "DE"
       wifi_firmware_package:
-          type: "str"
-          required: false
+        type: "str"
+        required: false
       bond_name:
-          type: "str"
-          required: false
-          default: "bond0"
+        type: "str"
+        required: false
+        default: "bond0"
       bond_address:
-          type: "str"
-          required: true
+        type: "str"
+        required: true
       bond_prefix:
-          type: "int"
-          required: true
+        type: "int"
+        required: true
       default_gateway:
-          type: "str"
-          required: true
+        type: "str"
+        required: true
       dns_nameservers:
-          type: "list"
-          elements: "str"
-          required: false
-          default: []
+        type: "list"
+        elements: "str"
+        required: false
+        default: []
       dns_domain:
-          type: "str"
-          required: false
-          default: ""
+        type: "str"
+        required: false
+        default: ""

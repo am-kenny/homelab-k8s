@@ -1,3 +1,4 @@
+---
 wifi_firmware_package: firmware-mediatek
 eth_interface: enp4s0
 wifi_interface: wlp5s0

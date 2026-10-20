@@ -1,0 +1,17 @@
+---
+extends: default
+
+ignore-from-file: [.gitignore, .yamllintignore]
+
+rules:
+  braces:
+    max-spaces-inside: 1
+  document-start:
+    present: true
+    ignore: |
+      /.github/
+      /.yamllint
+      /kubernetes/
+  line-length: disable
+  truthy:
+    check-keys: false

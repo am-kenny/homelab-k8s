@@ -18,6 +18,16 @@ env:
   KUBERNETES_VERSION: 1.36.3
 
 jobs:
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Lint YAML files
+        run: yamllint --strict .
   helmfile:
     runs-on: ubuntu-latest
     steps:

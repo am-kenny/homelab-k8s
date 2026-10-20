@@ -1,3 +1,4 @@
+---
 # needrestart helps detect if a reboot is actually required
 # This setup prevents reboot on each package update
 - name: Debian | Install reboot detection tooling

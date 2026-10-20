@@ -1,3 +1,4 @@
+---
 - name: Validate the PSK
   ansible.builtin.assert:
     that:

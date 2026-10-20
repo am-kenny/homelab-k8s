@@ -1,7 +1,7 @@
 - name: main | Gather service facts
   ansible.builtin.service_facts:
 
-- name: main | Disable swap 
+- name: main | Disable swap
   ansible.builtin.include_tasks: "{{ role_path }}/tasks/swap.yaml"
 
 - name: main | Configure firewalld

@@ -6,12 +6,12 @@
     name: dnf-plugins-core
     state: present
 
-- name: RedHat | Update all packages
+- name: RedHat | Update all packages # noqa: package-latest
   ansible.builtin.dnf:
     name: "*"
     state: latest
     update_cache: true
-  register: dnf_update
+  register: os_base_dnf_update
 
 - name: RedHat | Check if a reboot is required
   ansible.builtin.command: needs-restarting -r

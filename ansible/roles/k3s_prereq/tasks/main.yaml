@@ -1,10 +1,10 @@
 ---
-- name: main | Gather service facts
+- name: Gather service facts
   ansible.builtin.service_facts:
 
-- name: main | Disable swap
+- name: Disable swap
   ansible.builtin.include_tasks: "{{ role_path }}/tasks/swap.yaml"
 
-- name: main | Configure firewalld
+- name: Configure firewalld
   ansible.builtin.include_tasks: firewalld.yaml
   when: ansible_facts.services['firewalld.service']['state'] | default('') == 'running'

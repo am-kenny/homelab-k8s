@@ -4,6 +4,7 @@
 
 **A two-node k3s homelab, provisioned with Ansible and deployed with Helmfile.**
 
+[![CI](https://github.com/am-kenny/ampulsar/actions/workflows/ci.yml/badge.svg)](https://github.com/am-kenny/ampulsar/actions/workflows/ci.yml)
 [![k3s](https://img.shields.io/badge/k3s-v1.36-FFC61C?logo=k3s&logoColor=white)](https://k3s.io)
 [![Helmfile](https://img.shields.io/badge/Helmfile-0F1689?logo=helm&logoColor=white)](https://helmfile.readthedocs.io)
 [![Ansible](https://img.shields.io/badge/Ansible-EE0000?logo=ansible&logoColor=white)](https://www.ansible.com)

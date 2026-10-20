@@ -6,3 +6,5 @@ rules:
   line-length: disable
   truthy:
     check-keys: false
+  braces:
+    max-spaces-inside: 1

@@ -69,7 +69,7 @@ With the following content:
 
 ## Configure Ansible inventory
 
-List your nodes in `inventory/hosts.yaml`
+List your nodes in `inventory.yaml`
 
 ```yaml
 k8s_master:
@@ -84,7 +84,7 @@ wifi:  # Wi-Fi capable hosts
    hosts:
     <machine_name2>:
     <machine_name4>:
-      
+
 ```
 
 ## Running Ansible
@@ -104,14 +104,14 @@ ansible-galaxy collection install -r requirements.yaml
 Dry-run provisioning
 
 ```bash
-# pass -i inventory/hosts.yaml if ansible.cfg is being avoided (known issue with WSL)
+# pass -i inventory.yaml if ansible.cfg is being avoided (known issue with WSL)
 ansible-playbook playbook.yaml --check
 ```
 
 Run provisioning
 
 ```bash
-# pass -i inventory/hosts.yaml if ansible.cfg is being avoided (known issue with WSL)
+# pass -i inventory.yaml if ansible.cfg is being avoided (known issue with WSL)
 ansible-playbook playbook.yaml
 ```
 
@@ -201,7 +201,7 @@ dns_nameservers:
   - <nameserver2>
 ```
 
-Defaults for optional variables live in `roles/wifi/meta/argument_specs.yml`.
+Defaults for optional variables live in `roles/wifi/meta/argument_specs.yaml`.
 
 ### Post-run verification
 

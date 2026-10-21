@@ -28,6 +28,18 @@ jobs:
 
       - name: Lint YAML files
         run: yamllint --strict .
+
+  ansible-lint:
+    name: Ansible Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@v26.10.1
+        with:
+          requirements_file: "ansible/requirements.yaml"
+
   helmfile:
     runs-on: ubuntu-latest
     steps:

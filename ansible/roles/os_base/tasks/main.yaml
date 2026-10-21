@@ -1,5 +1,5 @@
 ---
-- name: main | Update all packages and check if a reboot is required
+- name: Update all packages and check if a reboot is required
   ansible.builtin.include_tasks: "{{ role_path }}/tasks/{{ ansible_facts['os_family'] }}.yaml"
 
 - name: Reboot if required

@@ -52,6 +52,7 @@ Outside the cluster, my desktop PC runs Ollama as the LLM backend for K8sGPT.
 | [Grafana](https://grafana.com) | Dashboards for cluster and node metrics | `am-server` |
 | [Prometheus](https://prometheus.io) | Metrics collection | `am-server` |
 | [K8sGPT](https://k8sgpt.ai) | Scans the cluster for issues | Any |
+| [Headlamp](https://headlamp.dev) | Web UI for accessing the cluster | Any |
 | [cert-manager](https://cert-manager.io) | Issues and renews certificates | Any |
 
 ## How it works

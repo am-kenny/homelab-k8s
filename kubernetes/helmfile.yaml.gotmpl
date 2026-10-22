@@ -22,6 +22,8 @@ repositories:
     url: https://charts.k8sgpt.ai/
   - name: couchdb
     url: https://apache.github.io/couchdb-helm
+  - name: headlamp
+    url: https://kubernetes-sigs.github.io/headlamp/
 
 ---
 
@@ -92,6 +94,12 @@ releases:
     namespace: obsidian
     values:
       - values/couchdb.yaml
+  - name: headlamp
+    chart: headlamp/headlamp
+    version: 0.46.0
+    namespace: headlamp
+    values:
+      - values/headlamp.yaml
 
   - name: k8sgpt-operator
     chart: k8sgpt/k8sgpt-operator

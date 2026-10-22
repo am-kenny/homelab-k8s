@@ -1,0 +1,8 @@
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  hosts:
+    - host: headlamp.amhome.app
+      paths:
+        - path: /
+          type: Prefix

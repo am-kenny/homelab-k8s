@@ -1,0 +1,82 @@
+name: Overleaf build
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: overleaf-image-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # renovate: datasource=docker depName=overleafcep/sharelatex
+  OVERLEAF_VERSION: 6.2.0-ext-v5.0
+
+jobs:
+  changes:
+    name: Changes
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: read
+
+    outputs:
+      overleaf: ${{ steps.filter.outputs.overleaf }}
+
+    steps:
+      # Check if new Overleaf build is required
+      - name: Filter paths
+        id: filter
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            overleaf:
+              - images/Dockerfile.overleaf
+              - .github/workflows/overleaf-build.yaml
+  docker:
+    name: Docker
+    needs: changes
+    if: needs.changes.outputs.overleaf == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository }}/overleaf
+          tags: |
+            type=raw,value=${{ env.OVERLEAF_VERSION }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: images
+          file: images/Dockerfile.overleaf
+          build-args: OVERLEAF_VERSION=${{ env.OVERLEAF_VERSION }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

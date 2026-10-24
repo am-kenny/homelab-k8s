@@ -35,8 +35,8 @@ jobs:
         with:
           filters: |
             overleaf:
-              - images/overleaf/**
-              - .github/workflows/overleaf-image.yaml
+              - images/Dockerfile.overleaf
+              - .github/workflows/overleaf-build.yaml
   docker:
     name: Docker
     needs: changes

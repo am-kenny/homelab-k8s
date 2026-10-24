@@ -1,0 +1,7 @@
+# Overleaf Extended CE with a complete TeX Live.
+ARG OVERLEAF_VERSION
+FROM overleafcep/sharelatex:${OVERLEAF_VERSION}
+
+RUN tlmgr update --self --all \
+ && tlmgr install scheme-full \
+ && tlmgr path add

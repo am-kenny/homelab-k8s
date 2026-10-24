@@ -72,7 +72,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
-          context: images/overleaf
+          context: images
+          file: images/Dockerfile.overleaf
           build-args: OVERLEAF_VERSION=${{ env.OVERLEAF_VERSION }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}

@@ -1,3 +1,7 @@
+image:
+  # Built by Overleaf build workflow. Includes full TeX Live.
+  repository: ghcr.io/am-kenny/homelab-k8s/overleaf
+
 existingSecret: overleaf-secrets
 
 overleaf:

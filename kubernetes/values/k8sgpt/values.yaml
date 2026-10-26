@@ -2,3 +2,20 @@ llm:
   address: 192.168.178.26
   model: gemma4:12b
   maxTokens: 4096
+
+analysis:
+  # Default set without ConfigMap.
+  filters:
+    - Pod
+    - DaemonSet
+    - Deployment
+    - ReplicaSet
+    - PersistentVolumeClaim
+    - Service
+    - Ingress
+    - StatefulSet
+    - Job
+    - CronJob
+    - Node
+    - ValidatingWebhookConfiguration
+    - MutatingWebhookConfiguration

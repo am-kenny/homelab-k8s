@@ -1,0 +1,26 @@
+{{- /*
+Telegram rejects messages over 4096 characters.
+Keep each message short and list at most 8 alerts.
+*/ -}}
+
+{{ define "telegram.homelab.alert" -}}
+<b>{{ .Labels.alertname }}</b>{{ with .Labels.severity }} ({{ . }}){{ end }}
+{{ reReplaceAll ` on cluster \.` "." (or .Annotations.description .Annotations.summary) }}
+{{- with .Annotations.runbook_url }} <a href="{{ . }}">Runbook</a>{{ end }}
+{{ end }}
+
+{{ define "telegram.homelab.message" -}}
+{{ with .Alerts.Firing -}}
+🔥 <b>{{ len . }} alerts firing</b>
+{{ range $i, $a := . }}{{ if lt $i 8 }}
+{{ template "telegram.homelab.alert" $a }}{{ end }}{{ end }}
+{{- if gt (len .) 8 }}
+...and more, see https://alertmanager.amhome.app
+{{ end }}{{ end }}
+{{- with .Alerts.Resolved }}
+✅ <b>{{ len . }} alerts resolved</b>
+{{ range $i, $a := . }}{{ if lt $i 8 }}• {{ $a.Labels.alertname }}{{ with $a.Labels.pod }} {{ . }}{{ else }}{{ with $a.Labels.node }} {{ . }}{{ end }}{{ end }}
+{{ end }}{{ end }}
+{{- if gt (len .) 8 }}...and more
+{{ end }}{{ end }}
+{{- end }}

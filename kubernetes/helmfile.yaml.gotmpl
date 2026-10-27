@@ -61,6 +61,9 @@ releases:
     disableValidationOnInstall: true
     values:
       - values/kube-prometheus-stack.yaml
+    set:
+      - name: alertmanager.templateFiles.telegram\.tmpl
+        file: values/alertmanager/telegram.tmpl
 
   - name: pihole
     chart: mojo2600/pihole

@@ -20,9 +20,6 @@ alertmanager:
     ingressClassName: traefik
     hosts:
       - alertmanager.amhome.app
-    paths:
-      - /
-    pathType: Prefix
   alertmanagerSpec:
     nodeSelector:
       kubernetes.io/hostname: am-server

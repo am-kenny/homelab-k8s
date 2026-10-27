@@ -38,7 +38,7 @@ Outside the cluster, my desktop PC runs Ollama as the LLM backend for K8sGPT.
 | Ingress | Traefik (bundled with k3s) |
 | Certificates | cert-manager with a Let's Encrypt issuer via Cloudflare DNS-01 |
 | DNS | Pi-hole |
-| Monitoring | Prometheus and Grafana (kube-prometheus-stack), K8sGPT |
+| Monitoring | Prometheus, Grafana and Alertmanager (kube-prometheus-stack), K8sGPT |
 
 ## Services
 
@@ -49,8 +49,9 @@ Outside the cluster, my desktop PC runs Ollama as the LLM backend for K8sGPT.
 | [Overleaf](https://github.com/yu-i-i/overleaf-cep) | LaTeX editor (Extended CE) | `am-wanderer` |
 | [CouchDB](https://couchdb.apache.org) | Sync server for Obsidian| `am-server` |
 | [AmPulsar](https://github.com/am-kenny/ampulsar) | Twitch and TikTok live notifications to Telegram | Any |
-| [Grafana](https://grafana.com) | Dashboards for cluster and node metrics | `am-server` |
 | [Prometheus](https://prometheus.io) | Metrics collection | `am-server` |
+| [Grafana](https://grafana.com) | Dashboards for cluster and node metrics | `am-server` |
+| [Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/) | Sends alerts to Telegram | `am-server` |
 | [K8sGPT](https://k8sgpt.ai) | Scans the cluster for issues | Any |
 | [Headlamp](https://headlamp.dev) | Web UI for accessing the cluster | Any |
 | [cert-manager](https://cert-manager.io) | Issues and renews certificates | Any |
@@ -85,6 +86,7 @@ Create each namespace, then its secret:
 | `overleaf-secrets` | `overleaf` | `OVERLEAF_SESSION_SECRET`, `OVERLEAF_INVITE_TOKEN_SECRET` |
 | `couchdb-admin` | `obsidian` | `adminUsername`, `adminPassword`, `cookieAuthSecret`, `erlangCookie` |
 | `grafana-admin` | `monitoring` | `admin-user`, `admin-password` |
+| `alertmanager-telegram` | `monitoring` | `bot-token`, `chat-id` |
 | `am-pulsar-secrets` | `am-pulsar` | `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `TELEGRAM_BOT_TOKEN` |
 
 ### 3. Deploy

@@ -14,7 +14,38 @@ kubeEtcd:
   enabled: false
 
 alertmanager:
-  enabled: false
+  enabled: true
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - alertmanager.amhome.app
+  alertmanagerSpec:
+    nodeSelector:
+      kubernetes.io/hostname: am-server
+    externalUrl: https://alertmanager.amhome.app
+    secrets:
+      - alertmanager-telegram
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+  config:
+    route:
+      receiver: telegram
+    receivers:
+      # Null is used by Watchdog
+      - name: "null"
+      - name: telegram
+        telegram_configs:
+          - bot_token_file: /etc/alertmanager/secrets/alertmanager-telegram/bot-token
+            chat_id_file: /etc/alertmanager/secrets/alertmanager-telegram/chat-id
+            message: '{{ template "telegram.homelab.message" . }}'
 
 prometheusOperator:
   nodeSelector:

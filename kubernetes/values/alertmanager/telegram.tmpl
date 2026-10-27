@@ -11,15 +11,15 @@ Keep each message short and list at most 8 alerts.
 
 {{ define "telegram.homelab.message" -}}
 {{ with .Alerts.Firing -}}
-🔥 <b>{{ len . }} alerts firing</b>
+🔥 <b>{{ len . }} alert{{ if gt (len .) 1 }}s{{ end }} firing</b>
 {{ range $i, $a := . }}{{ if lt $i 8 }}
 {{ template "telegram.homelab.alert" $a }}{{ end }}{{ end }}
 {{- if gt (len .) 8 }}
 ...and more, see https://alertmanager.amhome.app
 {{ end }}{{ end }}
 {{- with .Alerts.Resolved }}
-✅ <b>{{ len . }} alerts resolved</b>
-{{ range $i, $a := . }}{{ if lt $i 8 }}• {{ $a.Labels.alertname }}{{ with $a.Labels.pod }} {{ . }}{{ else }}{{ with $a.Labels.node }} {{ . }}{{ end }}{{ end }}
+✅ <b>{{ len . }} alert{{ if gt (len .) 1 }}s{{ end }} resolved</b>
+{{ range $i, $a := . }}{{ if lt $i 8 }}• {{ $a.Labels.alertname }}{{ with or $a.Labels.pod $a.Labels.node $a.Labels.job $a.Labels.namespace }} {{ . }}{{ end }}
 {{ end }}{{ end }}
 {{- if gt (len .) 8 }}...and more
 {{ end }}{{ end }}

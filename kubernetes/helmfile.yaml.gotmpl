@@ -16,6 +16,8 @@ helmDefaults:
 repositories:
   - name: hashicorp
     url: https://helm.releases.hashicorp.com
+  - name: external-secrets
+    url: https://charts.external-secrets.io
   - name: mojo2600
     url: https://mojo2600.github.io/pihole-kubernetes/
   - name: jameswynn
@@ -50,6 +52,12 @@ releases:
     namespace: vault
     values:
       - values/vault.yaml
+  - name: external-secrets
+    chart: external-secrets/external-secrets
+    version: 2.14.0
+    namespace: external-secrets
+    values:
+      - values/external-secrets.yaml
 
   - name: prometheus-operator-crds
     chart: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds

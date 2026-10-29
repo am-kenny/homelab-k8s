@@ -57,7 +57,16 @@ releases:
     version: 2.14.0
     namespace: external-secrets
     values:
-      - values/external-secrets.yaml
+      - values/secrets/external-secrets.yaml
+  - name: secrets
+    chart: ./charts/secrets
+    namespace: external-secrets
+    needs:
+      - external-secrets/external-secrets
+    # No External Secrets CRDs exist on fresh install
+    disableValidationOnInstall: true
+    values:
+      - values/secrets/secrets.yaml
 
   - name: prometheus-operator-crds
     chart: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds

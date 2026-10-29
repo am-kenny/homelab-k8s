@@ -14,6 +14,8 @@ helmDefaults:
 ---
 
 repositories:
+  - name: hashicorp
+    url: https://helm.releases.hashicorp.com
   - name: mojo2600
     url: https://mojo2600.github.io/pihole-kubernetes/
   - name: jameswynn
@@ -41,6 +43,13 @@ releases:
       - cert-manager/cert-manager
     # No cert-manager CRDs exist on fresh install
     disableValidationOnInstall: true
+
+  - name: vault
+    chart: hashicorp/vault
+    version: 0.34.1
+    namespace: vault
+    values:
+      - values/vault.yaml
 
   - name: prometheus-operator-crds
     chart: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds

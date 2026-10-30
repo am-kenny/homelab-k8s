@@ -8,6 +8,8 @@
 [![k3s](https://img.shields.io/badge/k3s-v1.36-FFC61C?logo=k3s&logoColor=white)](https://k3s.io)
 [![Helmfile](https://img.shields.io/badge/Helmfile-0F1689?logo=helm&logoColor=white)](https://helmfile.readthedocs.io)
 [![Ansible](https://img.shields.io/badge/Ansible-EE0000?logo=ansible&logoColor=white)](https://www.ansible.com)
+[![Terraform](https://img.shields.io/badge/Terraform-7B42BC?logo=terraform&logoColor=white)](https://developer.hashicorp.com/terraform)
+[![Vault](https://img.shields.io/badge/Vault-FFEC6E?logo=vault&logoColor=black)](https://developer.hashicorp.com/vault)
 [![Let's Encrypt](https://img.shields.io/badge/TLS-Let's%20Encrypt-003A70?logo=letsencrypt&logoColor=white)](https://letsencrypt.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 

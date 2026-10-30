@@ -32,11 +32,12 @@ Outside the cluster, my desktop PC runs Ollama as the LLM backend for K8sGPT.
 
 | Layer | Tool |
 | --- | --- |
-| Provisioning | Ansible |
+| Provisioning | Ansible, Terraform |
 | Kubernetes | k3s |
 | Deployment | Helm and Helmfile |
 | Ingress | Traefik (bundled with k3s) |
 | Certificates | cert-manager with a Let's Encrypt issuer via Cloudflare DNS-01 |
+| Secrets | HashiCorp Vault |
 | DNS | Pi-hole |
 | Monitoring | Prometheus, Grafana and Alertmanager (kube-prometheus-stack), K8sGPT |
 
@@ -55,12 +56,15 @@ Outside the cluster, my desktop PC runs Ollama as the LLM backend for K8sGPT.
 | [K8sGPT](https://k8sgpt.ai) | Scans the cluster for issues | Any |
 | [Headlamp](https://headlamp.dev) | Web UI for accessing the cluster | Any |
 | [cert-manager](https://cert-manager.io) | Issues and renews certificates | Any |
+| [Vault](https://developer.hashicorp.com/vault) | Stores all the cluster secrets | `am-server` |
+| [External Secrets Operator](https://external-secrets.io) | Syncs secrets from Vault into Kubernetes Secrets | Any |
 
 ## How it works
 
 - **Private by default:** Pi-hole resolves `*.amhome.app` to the server's LAN address and Traefik serves a wildcard certificate that cert-manager obtains through a Cloudflare DNS-01 challenge. Real HTTPS without exposing anything publicly.
 - **One always-on node, one ejectable node:** `am-server` hosts crucial services, like DNS. `am-wanderer` is a laptop that can leave the cluster at any time, so it only runs services that can go offline with it. A third node is planned for the near future.
 - **Wi-Fi failover:** The laptop's Ethernet and Wi-Fi are bonded in active-backup mode with systemd-networkd. This way the node is safe from accidental cable disconnects.
+- **Secrets in Vault:** Every app secret lives in a Vault KV mount. External Secrets Operator authenticates to Vault with its own ServiceAccount and syncs Vault secrets into regular Kubernetes Secrets. The charts only reference Secrets by name. Vault's mount, auth method, policy and role are configured with Terraform.
 - **Local LLM:** K8sGPT sends its scan results to Ollama on an external desktop. A selectorless Service and an EndpointSlice give that machine a stable in-cluster name.
 - **Safe to re-run:** The Ansible playbook updates packages, reboots only if required, disables swap, opens required firewalld ports and installs k3s. Running it again changes nothing unless something drifted.
 

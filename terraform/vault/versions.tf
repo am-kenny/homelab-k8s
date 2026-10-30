@@ -11,5 +11,5 @@ terraform {
 
 # Token comes from VAULT_TOKEN
 provider "vault" {
-  address = "https://vault.amhome.app"
+  address = var.vault_address
 }

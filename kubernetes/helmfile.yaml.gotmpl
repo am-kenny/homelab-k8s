@@ -34,7 +34,7 @@ repositories:
 releases:
   - name: cert-manager
     chart: oci://quay.io/jetstack/charts/cert-manager
-    version: 1.21.2
+    version: v1.21.3
     namespace: cert-manager
     values:
       - values/cert-manager.yaml
@@ -70,7 +70,7 @@ releases:
 
   - name: prometheus-operator-crds
     chart: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds
-    version: 32.0.1
+    version: 32.0.2
     namespace: monitoring
     values:
       - crds:
@@ -79,7 +79,7 @@ releases:
             helm.sh/resource-policy: keep
   - name: kube-prometheus-stack
     chart: oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
-    version: 92.10.1
+    version: 92.16.1
     namespace: monitoring
     needs:
       - monitoring/prometheus-operator-crds

@@ -13,7 +13,7 @@ concurrency:
 
 env:
   # renovate: datasource=docker depName=overleafcep/sharelatex
-  OVERLEAF_VERSION: 6.2.0-ext-v5.0
+  OVERLEAF_VERSION: 6.3.0-ext-v5.1
 
 jobs:
   changes:

@@ -5,7 +5,7 @@
     "customManagers:githubActionsVersions",
     "customManagers:helmChartYamlAppVersions",
     "group:allNonMajor",
-    "schedule:weekly"
+    "schedule:weekends"
   ],
   "timezone": "Europe/Berlin",
   "packageRules": [

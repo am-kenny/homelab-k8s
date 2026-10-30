@@ -1,0 +1,25 @@
+injector:
+  enabled: false
+
+server:
+  ha:
+    enabled: true
+    replicas: 1
+    raft:
+      enabled: true
+      setNodeId: true
+    # With one replica the PDB blocks node drains
+    disruptionBudget:
+      enabled: false
+
+  dataStorage:
+    size: 1Gi
+
+  nodeSelector:
+    kubernetes.io/hostname: am-server
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - host: vault.amhome.app

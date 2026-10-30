@@ -14,6 +14,10 @@ helmDefaults:
 ---
 
 repositories:
+  - name: hashicorp
+    url: https://helm.releases.hashicorp.com
+  - name: external-secrets
+    url: https://charts.external-secrets.io
   - name: mojo2600
     url: https://mojo2600.github.io/pihole-kubernetes/
   - name: jameswynn
@@ -41,6 +45,28 @@ releases:
       - cert-manager/cert-manager
     # No cert-manager CRDs exist on fresh install
     disableValidationOnInstall: true
+
+  - name: vault
+    chart: hashicorp/vault
+    version: 0.34.1
+    namespace: vault
+    values:
+      - values/vault.yaml
+  - name: external-secrets
+    chart: external-secrets/external-secrets
+    version: 2.14.0
+    namespace: external-secrets
+    values:
+      - values/secrets/external-secrets.yaml
+  - name: secrets
+    chart: ./charts/secrets
+    namespace: external-secrets
+    needs:
+      - external-secrets/external-secrets
+    # No External Secrets CRDs exist on fresh install
+    disableValidationOnInstall: true
+    values:
+      - values/secrets/secrets.yaml
 
   - name: prometheus-operator-crds
     chart: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds

@@ -9,12 +9,26 @@
   ],
   "timezone": "Europe/Berlin",
   "helm-values": {
-    "managerFilePatterns": ["/^kubernetes/values/.+\\.yaml$/"]
+    "managerFilePatterns": ["kubernetes/values/**/*.yaml"]
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["ansible/**/*.yaml"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+.+: \"(?<currentValue>.+)\""
+      ]
+    }
+  ],
   "packageRules": [
     {
       "matchPackageNames": ["overleafcep/sharelatex"],
       "versioning": "loose"
+    },
+    {
+      "description": "k3s upgrades get their own PR",
+      "matchPackageNames": ["k3s-io/k3s"],
+      "groupName": "k3s"
     }
   ]
 }

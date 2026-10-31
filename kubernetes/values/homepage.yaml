@@ -1,4 +1,5 @@
 image:
+  repository: ghcr.io/gethomepage/homepage
   tag: v2.4.0
 
 enableRbac: true

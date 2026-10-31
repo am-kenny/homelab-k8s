@@ -8,6 +8,9 @@
     "schedule:weekends"
   ],
   "timezone": "Europe/Berlin",
+  "helm-values": {
+    "managerFilePatterns": ["/^kubernetes/values/.+\\.yaml$/"]
+  },
   "packageRules": [
     {
       "matchPackageNames": ["overleafcep/sharelatex"],

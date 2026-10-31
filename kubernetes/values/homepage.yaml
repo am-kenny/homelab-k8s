@@ -55,8 +55,36 @@ config:
               version: 6
               url: http://pihole-web.pihole.svc.cluster.local
               key: "{{HOMEPAGE_VAR_PIHOLE_KEY}}"
+        - Vault:
+            href: https://vault.amhome.app
+            icon: hashicorp-vault.png
+    - Monitoring:
+        - Prometheus:
+            icon: prometheus.png
+            widget:
+              type: prometheus
+              url: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+        - Grafana:
+            href: https://grafana.amhome.app
+            icon: grafana.png
+            widget:
+              type: grafana
+              version: 2
+              alerts: alertmanager
+              url: http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local
+              username: "{{HOMEPAGE_VAR_GRAFANA_USER}}"
+              password: "{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}"
+        - Alertmanager:
+            href: https://alertmanager.amhome.app
+            icon: alertmanager.png
+        - Headlamp:
+            href: https://headlamp.amhome.app
+            icon: headlamp.png
     - Apps:
         - Overleaf:
             href: https://overleaf.amhome.app
             icon: overleaf.png
+        - Obsidian Sync:
+            href: https://notes.amhome.app/_utils
+            icon: couchdb.png
   bookmarks: []

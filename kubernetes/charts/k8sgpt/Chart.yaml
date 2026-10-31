@@ -7,4 +7,4 @@ type: application
 version: 0.1.0
 
 # renovate: image=ghcr.io/k8sgpt-ai/k8sgpt
-appVersion: "v0.4.40"
+appVersion: "v0.4.41"

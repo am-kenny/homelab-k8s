@@ -54,6 +54,8 @@ prometheusOperator:
 kube-state-metrics:
   nodeSelector:
     kubernetes.io/hostname: am-server
+  metricLabelsAllowlist:
+    - nodes=[amhome.app/ejectable]
 
 prometheus:
   prometheusSpec:

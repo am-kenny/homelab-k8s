@@ -21,6 +21,25 @@
     - k3s_node_type == 'agent'
     - __k3s_install_needed
 
+- name: Create k3s config directory
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: k3s_config | length > 0
+
+# Node labels and taints are only applied when the node registers
+- name: Write k3s config
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/rancher/k3s/config.yaml
+    owner: root
+    group: root
+    mode: "0600"
+  when: k3s_config | length > 0
+
 - name: Download k3s installer
   ansible.builtin.get_url:
     url: https://get.k3s.io

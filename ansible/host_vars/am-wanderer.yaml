@@ -5,3 +5,7 @@ wifi_interface: wlp5s0
 
 bond_address: 192.168.178.10
 bond_prefix: 24
+
+k3s_config:
+  node-label:
+    - amhome.app/ejectable=true

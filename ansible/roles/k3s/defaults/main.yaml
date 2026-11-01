@@ -3,3 +3,4 @@ k3s_node_type: agent
 # renovate: datasource=github-releases depName=k3s-io/k3s
 k3s_version: "v1.36.3+k3s1"
 k3s_server_group: k8s_master
+k3s_config: {}

@@ -12,7 +12,7 @@ argument_specs:
       k3s_version:
         type: str
         # renovate: datasource=github-releases depName=k3s-io/k3s
-        default: "v1.36.3+k3s1"
+        default: "v1.37.1+k3s1"
         description: k3s version to install.
       k3s_server_group:
         type: str

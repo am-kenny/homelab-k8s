@@ -70,11 +70,24 @@ extraManifests:
         - sourceMatch:
             - name: alertname
               value: EjectableNodeAway
+            - name: scope
+              value: node
           targetMatch:
             - name: alertname
               value: EjectableNodeAway
               matchType: "!="
           equal: [node]
+        # Inhibit pod alerts when EjectableNodeAway fires
+        - sourceMatch:
+            - name: alertname
+              value: EjectableNodeAway
+            - name: scope
+              value: pod
+          targetMatch:
+            - name: alertname
+              value: EjectableNodeAway
+              matchType: "!="
+          equal: [namespace, pod]
 
 prometheusOperator:
   nodeSelector:
@@ -126,10 +139,26 @@ additionalPrometheusRulesMap:
               unless on (node)
               (kube_node_status_condition{condition="Ready", status="true"} == 1)
 
+          - record: pod:ejectable_away
+            expr: |
+              max by (namespace, pod) (
+                kube_pod_info and on (node) node:ejectable_away
+              )
+
           - alert: EjectableNodeAway
             expr: node:ejectable_away
             keep_firing_for: 15m
             labels:
               severity: none
+              scope: node
             annotations:
               summary: Ejectable node {{ $labels.node }} is away.
+
+          - alert: EjectableNodeAway
+            expr: pod:ejectable_away
+            keep_firing_for: 15m
+            labels:
+              severity: none
+              scope: pod
+            annotations:
+              summary: Pod {{ $labels.namespace }}/{{ $labels.pod }} is on an away ejectable node.

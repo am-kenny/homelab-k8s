@@ -147,7 +147,7 @@ additionalPrometheusRulesMap:
 
           - alert: EjectableNodeAway
             expr: node:ejectable_away
-            keep_firing_for: 15m
+            keep_firing_for: 5m
             labels:
               severity: none
               scope: node
@@ -156,7 +156,7 @@ additionalPrometheusRulesMap:
 
           - alert: EjectableNodeAway
             expr: pod:ejectable_away
-            keep_firing_for: 15m
+            keep_firing_for: 5m
             labels:
               severity: none
               scope: pod

@@ -35,6 +35,9 @@ alertmanager:
           resources:
             requests:
               storage: 1Gi
+    # Apply AlertmanagerConfigs in monitoring namespace to all alerts
+    alertmanagerConfigMatcherStrategy:
+      type: OnNamespaceExceptForAlertmanagerNamespace
   config:
     route:
       receiver: telegram
@@ -46,6 +49,32 @@ alertmanager:
           - bot_token_file: /etc/alertmanager/secrets/alertmanager-telegram/bot-token
             chat_id_file: /etc/alertmanager/secrets/alertmanager-telegram/chat-id
             message: '{{ template "telegram.homelab.message" . }}'
+
+extraManifests:
+  ejectable-nodes:
+    apiVersion: monitoring.coreos.com/v1alpha1
+    kind: AlertmanagerConfig
+    metadata:
+      name: ejectable-nodes
+    spec:
+      # EjectableNodeAway should stay silent
+      route:
+        receiver: "null"
+        matchers:
+          - name: alertname
+            value: EjectableNodeAway
+      receivers:
+        - name: "null"
+      inhibitRules:
+        # Inhibit node alerts when EjectableNodeAway fires
+        - sourceMatch:
+            - name: alertname
+              value: EjectableNodeAway
+          targetMatch:
+            - name: alertname
+              value: EjectableNodeAway
+              matchType: "!="
+          equal: [node]
 
 prometheusOperator:
   nodeSelector:

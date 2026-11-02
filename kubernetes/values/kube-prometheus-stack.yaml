@@ -85,3 +85,22 @@ grafana:
     enabled: true
     storageClassName: local-path
     size: 1Gi
+
+additionalPrometheusRulesMap:
+  ejectable-nodes:
+    groups:
+      - name: ejectable-nodes
+        rules:
+          - record: node:ejectable_away
+            expr: |
+              (max by (node) (kube_node_labels{label_amhome_app_ejectable="true"}))
+              unless on (node)
+              (kube_node_status_condition{condition="Ready", status="true"} == 1)
+
+          - alert: EjectableNodeAway
+            expr: node:ejectable_away
+            keep_firing_for: 15m
+            labels:
+              severity: none
+            annotations:
+              summary: Ejectable node {{ $labels.node }} is away.

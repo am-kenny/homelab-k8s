@@ -21,7 +21,7 @@ persistence:
   size: 20Gi
 
 nodeSelector:
-  kubernetes.io/hostname: am-wanderer
+  amhome.app/ejectable: "true"
 
 ingress:
   enabled: true
@@ -36,10 +36,10 @@ mongodb:
   persistence:
     size: 8Gi
   nodeSelector:
-    kubernetes.io/hostname: am-wanderer
+    amhome.app/ejectable: "true"
 
 redis:
   persistence:
     size: 2Gi
   nodeSelector:
-    kubernetes.io/hostname: am-wanderer
+    amhome.app/ejectable: "true"

@@ -99,7 +99,7 @@ extraManifests:
               value: EjectableNodeAway
               matchType: "!="
           equal: [namespace, daemonset]
-        # Inhibit TargetDown when EjectableNodeAway fires
+        # Inhibit TargetDown alerts when EjectableNodeAway fires
         - sourceMatch:
             - name: alertname
               value: EjectableNodeAway
@@ -110,6 +110,28 @@ extraManifests:
               value: EjectableNodeAway
               matchType: "!="
           equal: [job, namespace, service]
+        # Inhibit Deployment alerts when EjectableNodeAway fires
+        - sourceMatch:
+            - name: alertname
+              value: EjectableNodeAway
+            - name: scope
+              value: deployment
+          targetMatch:
+            - name: alertname
+              value: EjectableNodeAway
+              matchType: "!="
+          equal: [namespace, deployment]
+        # Inhibit StatefulSet alerts when EjectableNodeAway fires
+        - sourceMatch:
+            - name: alertname
+              value: EjectableNodeAway
+            - name: scope
+              value: statefulset
+          targetMatch:
+            - name: alertname
+              value: EjectableNodeAway
+              matchType: "!="
+          equal: [namespace, statefulset]
 
 prometheusOperator:
   nodeSelector:
@@ -120,6 +142,8 @@ kube-state-metrics:
     kubernetes.io/hostname: am-server
   metricLabelsAllowlist:
     - nodes=[amhome.app/ejectable]
+  metricOptInList:
+    - kube_pod_nodeselectors
 
 prometheus:
   prometheusSpec:
@@ -161,10 +185,24 @@ additionalPrometheusRulesMap:
               unless on (node)
               (kube_node_status_condition{condition="Ready", status="true"} == 1)
 
+          - record: pod:ejectable_pinned_away
+            expr: |
+              group by (namespace, pod) (
+                kube_pod_nodeselectors{nodeselector_amhome_app_ejectable="true"}
+              )
+              unless on ()
+              (
+                kube_node_labels{label_amhome_app_ejectable="true"}
+                and on (node)
+                (kube_node_status_condition{condition="Ready", status="true"} == 1)
+              )
+
           - record: pod:ejectable_away
             expr: |
               group by (namespace, pod) (
-                kube_pod_info and on (node) node:ejectable_away
+                  (kube_pod_info and on (node) node:ejectable_away)
+                or
+                  pod:ejectable_pinned_away
               )
 
           - record: daemonset:ejectable_away
@@ -183,6 +221,36 @@ additionalPrometheusRulesMap:
                   (up == 0 and on (node) node:ejectable_away)
                 or
                   (up == 0 and on (namespace, pod) pod:ejectable_away)
+              )
+
+          - record: replicaset:ejectable_away
+            expr: |
+              group by (namespace, replicaset) (
+                label_join(
+                  kube_pod_info{created_by_kind="ReplicaSet"}
+                  and on (namespace, pod) pod:ejectable_pinned_away,
+                  "replicaset", "", "created_by_name"
+                )
+              )
+
+          - record: deployment:ejectable_away
+            expr: |
+              group by (namespace, deployment) (
+                label_join(
+                  kube_replicaset_owner{owner_kind="Deployment"}
+                  and on (namespace, replicaset) replicaset:ejectable_away,
+                  "deployment", "", "owner_name"
+                )
+              )
+
+          - record: statefulset:ejectable_away
+            expr: |
+              group by (namespace, statefulset) (
+                label_join(
+                  kube_pod_info{created_by_kind="StatefulSet"}
+                  and on (namespace, pod) pod:ejectable_pinned_away,
+                  "statefulset", "", "created_by_name"
+                )
               )
 
           - alert: EjectableNodeAway
@@ -220,3 +288,21 @@ additionalPrometheusRulesMap:
               scope: job
             annotations:
               summary: Job {{ $labels.job }} has targets on an away ejectable node.
+
+          - alert: EjectableNodeAway
+            expr: deployment:ejectable_away
+            keep_firing_for: 5m
+            labels:
+              severity: none
+              scope: deployment
+            annotations:
+              summary: Deployment {{ $labels.namespace }}/{{ $labels.deployment }} is pinned to away ejectable nodes.
+
+          - alert: EjectableNodeAway
+            expr: statefulset:ejectable_away
+            keep_firing_for: 5m
+            labels:
+              severity: none
+              scope: statefulset
+            annotations:
+              summary: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} is pinned to away ejectable nodes.

@@ -51,6 +51,7 @@ alertmanager:
             message: '{{ template "telegram.homelab.message" . }}'
 
 extraManifests:
+  # Added on top of the chart's Alertmanager config
   ejectable-nodes:
     apiVersion: monitoring.coreos.com/v1alpha1
     kind: AlertmanagerConfig
@@ -141,6 +142,7 @@ kube-state-metrics:
   nodeSelector:
     kubernetes.io/hostname: am-server
   metricLabelsAllowlist:
+    # Used by the ejectable-nodes rules
     - nodes=[amhome.app/ejectable]
   metricOptInList:
     - kube_pod_nodeselectors
@@ -174,17 +176,20 @@ grafana:
     storageClassName: local-path
     size: 1Gi
 
+# EjectableNodeAway is used to mute alerts caused by an ejectable node (label amhome.app/ejectable=true) leaving the cluster.
 additionalPrometheusRulesMap:
   ejectable-nodes:
     groups:
       - name: ejectable-nodes
         rules:
+          # Ejectable nodes that are not Ready
           - record: node:ejectable_away
             expr: |
               (group by (node) (kube_node_labels{label_amhome_app_ejectable="true"}))
               unless on (node)
               (kube_node_status_condition{condition="Ready", status="true"} == 1)
 
+          # Pods pinned to ejectable nodes that are not Ready
           - record: pod:ejectable_pinned_away
             expr: |
               group by (namespace, pod) (
@@ -197,6 +202,7 @@ additionalPrometheusRulesMap:
                 (kube_node_status_condition{condition="Ready", status="true"} == 1)
               )
 
+          # Pods on ejectable nodes and pods waiting for one
           - record: pod:ejectable_away
             expr: |
               group by (namespace, pod) (
@@ -215,6 +221,7 @@ additionalPrometheusRulesMap:
                 )
               )
 
+          # Jobs on ejectable nodes
           - record: job:ejectable_away
             expr: |
               group by (job, namespace, service) (
@@ -223,6 +230,7 @@ additionalPrometheusRulesMap:
                   (up == 0 and on (namespace, pod) pod:ejectable_away)
               )
 
+          # ReplicaSet record required for defining Deployments pinned to ejectable nodes
           - record: replicaset:ejectable_away
             expr: |
               group by (namespace, replicaset) (
@@ -233,6 +241,7 @@ additionalPrometheusRulesMap:
                 )
               )
 
+          # Deployments pinned to ejectable nodes
           - record: deployment:ejectable_away
             expr: |
               group by (namespace, deployment) (
@@ -243,6 +252,7 @@ additionalPrometheusRulesMap:
                 )
               )
 
+          # StatefulSets pinned to ejectable nodes
           - record: statefulset:ejectable_away
             expr: |
               group by (namespace, statefulset) (

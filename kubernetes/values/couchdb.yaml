@@ -8,7 +8,7 @@ persistentVolume:
   size: 5Gi
 
 nodeSelector:
-  kubernetes.io/hostname: am-wanderer
+  amhome.app/ejectable: "true"
 
 ingress:
   enabled: true

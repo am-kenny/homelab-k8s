@@ -18,3 +18,7 @@ argument_specs:
         type: str
         default: k8s_master
         description: Inventory group containing the server node.
+      k3s_config:
+        type: dict
+        default: {}
+        description: Content of /etc/rancher/k3s/config.yaml.

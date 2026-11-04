@@ -87,6 +87,7 @@ releases:
     disableValidationOnInstall: true
     values:
       - values/monitoring/kube-prometheus-stack.yaml
+      - values/monitoring/ejectable-nodes.yaml
     set:
       - name: alertmanager.templateFiles.telegram\.tmpl
         file: values/alertmanager/telegram.tmpl

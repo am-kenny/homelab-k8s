@@ -1,0 +1,237 @@
+kube-state-metrics:
+  metricLabelsAllowlist:
+    # Used by the ejectable-nodes rules
+    - nodes=[amhome.app/ejectable]
+  metricOptInList:
+    - kube_pod_nodeselectors
+
+# EjectableNodeAway is used to mute alerts caused by an ejectable node (label amhome.app/ejectable=true) leaving the cluster.
+additionalPrometheusRulesMap:
+  ejectable-nodes:
+    groups:
+      - name: ejectable-nodes
+        rules:
+          # Ejectable nodes that are not Ready
+          - record: node:ejectable_away
+            expr: |
+              (group by (node) (kube_node_labels{label_amhome_app_ejectable="true"}))
+              unless on (node)
+              (kube_node_status_condition{condition="Ready", status="true"} == 1)
+
+          # Pods pinned to ejectable nodes that are not Ready
+          - record: pod:ejectable_pinned_away
+            expr: |
+              group by (namespace, pod) (
+                kube_pod_nodeselectors{nodeselector_amhome_app_ejectable="true"}
+              )
+              unless on ()
+              (
+                kube_node_labels{label_amhome_app_ejectable="true"}
+                and on (node)
+                (kube_node_status_condition{condition="Ready", status="true"} == 1)
+              )
+
+          # Pods on ejectable nodes and pods waiting for one
+          - record: pod:ejectable_away
+            expr: |
+              group by (namespace, pod) (
+                  (kube_pod_info and on (node) node:ejectable_away)
+                or
+                  pod:ejectable_pinned_away
+              )
+
+          - record: daemonset:ejectable_away
+            expr: |
+              group by (namespace, daemonset) (
+                label_join(
+                  kube_pod_info{created_by_kind="DaemonSet"}
+                  and on (namespace, pod) pod:ejectable_away,
+                  "daemonset", "", "created_by_name"
+                )
+              )
+
+          # Jobs on ejectable nodes
+          - record: job:ejectable_away
+            expr: |
+              group by (job, namespace, service) (
+                  (up == 0 and on (node) node:ejectable_away)
+                or
+                  (up == 0 and on (namespace, pod) pod:ejectable_away)
+              )
+
+          # ReplicaSet record required for defining Deployments pinned to ejectable nodes
+          - record: replicaset:ejectable_away
+            expr: |
+              group by (namespace, replicaset) (
+                label_join(
+                  kube_pod_info{created_by_kind="ReplicaSet"}
+                  and on (namespace, pod) pod:ejectable_pinned_away,
+                  "replicaset", "", "created_by_name"
+                )
+              )
+
+          # Deployments pinned to ejectable nodes
+          - record: deployment:ejectable_away
+            expr: |
+              group by (namespace, deployment) (
+                label_join(
+                  kube_replicaset_owner{owner_kind="Deployment"}
+                  and on (namespace, replicaset) replicaset:ejectable_away,
+                  "deployment", "", "owner_name"
+                )
+              )
+
+          # StatefulSets pinned to ejectable nodes
+          - record: statefulset:ejectable_away
+            expr: |
+              group by (namespace, statefulset) (
+                label_join(
+                  kube_pod_info{created_by_kind="StatefulSet"}
+                  and on (namespace, pod) pod:ejectable_pinned_away,
+                  "statefulset", "", "created_by_name"
+                )
+              )
+
+          - alert: EjectableNodeAway
+            expr: node:ejectable_away
+            keep_firing_for: 5m
+            labels:
+              severity: none
+              scope: node
+            annotations:
+              summary: Ejectable node {{ $labels.node }} is away.
+
+          - alert: EjectableNodeAway
+            expr: pod:ejectable_away
+            keep_firing_for: 5m
+            labels:
+              severity: none
+              scope: pod
+            annotations:
+              summary: Pod {{ $labels.namespace }}/{{ $labels.pod }} is on an away ejectable node.
+
+          - alert: EjectableNodeAway
+            expr: daemonset:ejectable_away
+            keep_firing_for: 5m
+            labels:
+              severity: none
+              scope: daemonset
+            annotations:
+              summary: DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} has pods on an away ejectable node.
+
+          - alert: EjectableNodeAway
+            expr: job:ejectable_away
+            keep_firing_for: 5m
+            labels:
+              severity: none
+              scope: job
+            annotations:
+              summary: Job {{ $labels.job }} has targets on an away ejectable node.
+
+          - alert: EjectableNodeAway
+            expr: deployment:ejectable_away
+            keep_firing_for: 5m
+            labels:
+              severity: none
+              scope: deployment
+            annotations:
+              summary: Deployment {{ $labels.namespace }}/{{ $labels.deployment }} is pinned to away ejectable nodes.
+
+          - alert: EjectableNodeAway
+            expr: statefulset:ejectable_away
+            keep_firing_for: 5m
+            labels:
+              severity: none
+              scope: statefulset
+            annotations:
+              summary: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} is pinned to away ejectable nodes.
+
+alertmanager:
+  alertmanagerSpec:
+    # Apply AlertmanagerConfigs in monitoring namespace to all alerts
+    alertmanagerConfigMatcherStrategy:
+      type: OnNamespaceExceptForAlertmanagerNamespace
+
+extraManifests:
+  # Added on top of the chart's Alertmanager config
+  ejectable-nodes:
+    apiVersion: monitoring.coreos.com/v1alpha1
+    kind: AlertmanagerConfig
+    metadata:
+      name: ejectable-nodes
+    spec:
+      # EjectableNodeAway should stay silent
+      route:
+        receiver: "null"
+        matchers:
+          - name: alertname
+            value: EjectableNodeAway
+      receivers:
+        - name: "null"
+      inhibitRules:
+        # Inhibit node alerts when EjectableNodeAway fires
+        - sourceMatch:
+            - name: alertname
+              value: EjectableNodeAway
+            - name: scope
+              value: node
+          targetMatch:
+            - name: alertname
+              value: EjectableNodeAway
+              matchType: "!="
+          equal: [node]
+        # Inhibit pod alerts when EjectableNodeAway fires
+        - sourceMatch:
+            - name: alertname
+              value: EjectableNodeAway
+            - name: scope
+              value: pod
+          targetMatch:
+            - name: alertname
+              value: EjectableNodeAway
+              matchType: "!="
+          equal: [namespace, pod]
+        # Inhibit DaemonSet alerts when EjectableNodeAway fires
+        - sourceMatch:
+            - name: alertname
+              value: EjectableNodeAway
+            - name: scope
+              value: daemonset
+          targetMatch:
+            - name: alertname
+              value: EjectableNodeAway
+              matchType: "!="
+          equal: [namespace, daemonset]
+        # Inhibit TargetDown alerts when EjectableNodeAway fires
+        - sourceMatch:
+            - name: alertname
+              value: EjectableNodeAway
+            - name: scope
+              value: job
+          targetMatch:
+            - name: alertname
+              value: EjectableNodeAway
+              matchType: "!="
+          equal: [job, namespace, service]
+        # Inhibit Deployment alerts when EjectableNodeAway fires
+        - sourceMatch:
+            - name: alertname
+              value: EjectableNodeAway
+            - name: scope
+              value: deployment
+          targetMatch:
+            - name: alertname
+              value: EjectableNodeAway
+              matchType: "!="
+          equal: [namespace, deployment]
+        # Inhibit StatefulSet alerts when EjectableNodeAway fires
+        - sourceMatch:
+            - name: alertname
+              value: EjectableNodeAway
+            - name: scope
+              value: statefulset
+          targetMatch:
+            - name: alertname
+              value: EjectableNodeAway
+              matchType: "!="
+          equal: [namespace, statefulset]

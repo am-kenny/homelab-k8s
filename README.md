@@ -60,6 +60,7 @@ Outside the cluster, my desktop PC runs Ollama as the LLM backend for K8sGPT.
 | [cert-manager](https://cert-manager.io) | Issues and renews certificates | Any |
 | [Vault](https://developer.hashicorp.com/vault) | Stores the app secrets | `am-server` |
 | [External Secrets Operator](https://external-secrets.io) | Syncs secrets from Vault into Kubernetes Secrets | Any |
+| [KitchenOwl](https://kitchenowl.org) | Grocery list and meal planner | `am-server` |
 
 ## How it works
 
@@ -133,6 +134,7 @@ Create each secret in the `homelab` KV mount, for example in the UI at `http://1
 | `monitoring/grafana-admin` | `admin-user`, `admin-password` |
 | `monitoring/alertmanager-telegram` | `bot-token`, `chat-id` |
 | `am-pulsar/am-pulsar-secrets` | `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `TELEGRAM_BOT_TOKEN` |
+| `kitchenowl/kitchenowl-secrets` | `JWT_SECRET_KEY` |
 
 ### 5. Deploy External Secrets Operator
 

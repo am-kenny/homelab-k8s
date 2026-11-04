@@ -28,6 +28,9 @@ repositories:
     url: https://apache.github.io/couchdb-helm
   - name: headlamp
     url: https://kubernetes-sigs.github.io/headlamp/
+  - name: bjw-s
+    url: ghcr.io/bjw-s-labs/helm
+    oci: true
 
 ---
 
@@ -130,6 +133,12 @@ releases:
     namespace: headlamp
     values:
       - values/headlamp.yaml
+  - name: kitchenowl
+    chart: oci://ghcr.io/bjw-s-labs/helm/app-template
+    version: 5.3.0
+    namespace: kitchenowl
+    values:
+      - values/kitchenowl.yaml
 
   - name: k8sgpt-operator
     chart: k8sgpt/k8sgpt-operator

@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/app-template-5.3.0/charts/other/app-template/values.schema.json
+controllers:
+  kitchenowl:
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: tombursch/kitchenowl
+          tag: v0.7.10
+        envFrom:
+          - secretRef:
+              name: kitchenowl-secrets
+
+defaultPodOptions:
+  nodeSelector:
+    kubernetes.io/hostname: am-server
+
+service:
+  app:
+    controller: kitchenowl
+    ports:
+      http:
+        port: 8080
+
+ingress:
+  app:
+    className: traefik
+    hosts:
+      - host: kitchenowl.amhome.app
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: app
+              port: http
+
+persistence:
+  data:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    globalMounts:
+      - path: /data

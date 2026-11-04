@@ -86,7 +86,7 @@ releases:
     # No Prometheus operator CRDs exist on fresh install
     disableValidationOnInstall: true
     values:
-      - values/kube-prometheus-stack.yaml
+      - values/monitoring/kube-prometheus-stack.yaml
     set:
       - name: alertmanager.templateFiles.telegram\.tmpl
         file: values/alertmanager/telegram.tmpl

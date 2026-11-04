@@ -90,7 +90,7 @@ releases:
       - values/monitoring/ejectable-nodes.yaml
     set:
       - name: alertmanager.templateFiles.telegram\.tmpl
-        file: values/alertmanager/telegram.tmpl
+        file: values/monitoring/alertmanager/telegram.tmpl
 
   - name: pihole
     chart: mojo2600/pihole

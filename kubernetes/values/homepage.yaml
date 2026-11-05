@@ -84,6 +84,9 @@ config:
         - Overleaf:
             href: https://overleaf.amhome.app
             icon: overleaf.png
+        - KitchenOwl:
+            href: https://kitchenowl.amhome.app
+            icon: kitchenowl.png
         - Obsidian Sync:
             href: https://notes.amhome.app/_utils
             icon: couchdb.png

@@ -28,7 +28,7 @@
 	"tests": [
 		{
 			"src":    "${admin_login}",
-			// "accept": ["${homelab_ip}:443", "${homelab_ip}:53"],
+			"accept": ["${homelab_ip}:443", "${homelab_ip}:53"], // Will conflict before Connector is set up. Comment out in this case.
 			"deny":   ["${homelab_ip}:22", "${homelab_ip}:6443", "${homelab_ip}:10250"],
 		},
 	],

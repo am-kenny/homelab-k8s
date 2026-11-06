@@ -1,0 +1,9 @@
+apiVersion: tailscale.com/v1alpha1
+kind: ProxyClass
+metadata:
+  name: {{ .Values.hostname }}
+spec:
+  statefulSet:
+    pod:
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}

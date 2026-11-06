@@ -1,0 +1,35 @@
+// Tailnet policy for AmHome. Managed by Terraform.
+{
+	// Define the tags which can be applied to devices.
+	"tagOwners": {
+		// Tailscale Kubernetes operator
+		"tag:k8s-operator": [],
+		// Devices created by the operator
+		"tag:k8s": ["tag:k8s-operator"],
+	},
+
+	// Approve routes without manual review in the admin console.
+	"autoApprovers": {
+		"routes": {
+			"${homelab_ip}/32": ["tag:k8s"],
+		},
+	},
+
+	// Allow only the homelab route.
+	"grants": [
+		// Users can reach homelab services through the subnet route: HTTPS on Traefik and DNS on Pi-hole.
+		{
+			"src": ["autogroup:member"],
+			"dst": ["${homelab_ip}/32"],
+			"ip":  ["tcp:443", "tcp:53", "udp:53"],
+		},
+	],
+
+	"tests": [
+		{
+			"src":    "${admin_login}",
+			"accept": ["${homelab_ip}:443", "${homelab_ip}:53"], // Will fail before Connector is set up. Comment out for the first apply.
+			"deny":   ["${homelab_ip}:22", "${homelab_ip}:6443", "${homelab_ip}:10250"],
+		},
+	],
+}

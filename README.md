@@ -11,6 +11,7 @@
 [![Terraform](https://img.shields.io/badge/Terraform-7B42BC?logo=terraform&logoColor=white)](https://developer.hashicorp.com/terraform)
 [![Vault](https://img.shields.io/badge/Vault-FFEC6E?logo=vault&logoColor=black)](https://developer.hashicorp.com/vault)
 [![Let's Encrypt](https://img.shields.io/badge/TLS-Let's%20Encrypt-003A70?logo=letsencrypt&logoColor=white)](https://letsencrypt.org)
+[![Tailscale](https://img.shields.io/badge/Tailscale-242424?logo=tailscale&logoColor=white)](https://tailscale.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 </div>
@@ -19,7 +20,7 @@
 
 ## About
 
-This repository hosts all the playbooks, charts and configurations that run my homelab, from machine setup to the Helm releases. All the services are reachable only from the home network at `*.amhome.app`.
+This repository hosts all the playbooks, charts and configurations that run my homelab, from machine setup to the Helm releases. All the services are reachable at `*.amhome.app` only from the home network or over Tailscale.
 
 ## Hardware
 
@@ -41,6 +42,7 @@ Outside the cluster, my desktop PC runs Ollama as the LLM backend for K8sGPT.
 | Certificates | cert-manager with a Let's Encrypt issuer via Cloudflare DNS-01 |
 | Secrets | HashiCorp Vault |
 | DNS | Pi-hole |
+| Remote access | Tailscale (Kubernetes operator) |
 | Monitoring | Prometheus, Grafana and Alertmanager (kube-prometheus-stack), K8sGPT |
 
 ## Services
@@ -60,11 +62,14 @@ Outside the cluster, my desktop PC runs Ollama as the LLM backend for K8sGPT.
 | [cert-manager](https://cert-manager.io) | Issues and renews certificates | Any |
 | [Vault](https://developer.hashicorp.com/vault) | Stores the app secrets | `am-server` |
 | [External Secrets Operator](https://external-secrets.io) | Syncs secrets from Vault into Kubernetes Secrets | Any |
+| [Tailscale operator](https://tailscale.com/docs/kubernetes-operator) | Runs the subnet router for remote access | Any |
+| [Tailscale subnet router](https://tailscale.com/docs/features/subnet-routers) | Routes tailnet devices to Traefik and Pi-hole | `am-server` |
 | [KitchenOwl](https://kitchenowl.org) | Grocery list and meal planner | `am-server` |
 
 ## How it works
 
 - **Private by default:** Pi-hole resolves `*.amhome.app` to the server's LAN address and Traefik serves a wildcard certificate that cert-manager obtains through a Cloudflare DNS-01 challenge. Real HTTPS without exposing anything publicly.
+- **Remote access over Tailscale:** The Tailscale operator runs a subnet router that exposes the server's address to the tailnet, while split DNS sends `*.amhome.app` lookups to Pi-hole. This way homelab services are resolved from any device connected to the Tailnet.
 - **One always-on node, one ejectable node:** `am-server` hosts crucial services, like DNS. `am-wanderer` is a laptop that can leave the cluster at any time, so it only runs services that can go offline with it. A third node is planned for the near future.
 - **Wi-Fi failover:** The laptop's Ethernet and Wi-Fi are bonded in active-backup mode with systemd-networkd. This way the node is safe from accidental cable disconnects.
 - **Secrets in Vault:** Every app secret lives in a Vault KV mount. External Secrets Operator (ESO) authenticates to Vault with its own ServiceAccount and syncs Vault secrets into regular Kubernetes Secrets. The charts only reference Secrets by name. Vault's mount, auth method, policy and role are configured with Terraform.

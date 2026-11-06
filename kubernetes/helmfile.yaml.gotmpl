@@ -31,6 +31,8 @@ repositories:
   - name: bjw-s
     url: ghcr.io/bjw-s-labs/helm
     oci: true
+  - name: tailscale
+    url: https://pkgs.tailscale.com/helmcharts
 
 ---
 
@@ -101,6 +103,20 @@ releases:
     namespace: pihole
     values:
       - values/pihole.yaml
+  - name: tailscale-operator
+    chart: tailscale/tailscale-operator
+    version: 1.104.4
+    namespace: tailscale
+    needs:
+      - external-secrets/secrets
+  - name: tailscale
+    chart: ./charts/tailscale
+    namespace: tailscale
+    needs:
+      - tailscale/tailscale-operator
+    # No Tailscale CRDs exist on fresh install
+    disableValidationOnInstall: true
+
 {{- range .Values.instances }}
   - name: am-pulsar-{{ . }}
     chart: ./charts/am-pulsar

@@ -1,0 +1,9 @@
+# Tailnet device name
+hostname: amhome
+
+# Routes advertised to the tailnet
+routes:
+  - 192.168.178.11/32
+
+nodeSelector:
+  kubernetes.io/hostname: am-server

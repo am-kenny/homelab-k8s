@@ -1,0 +1,10 @@
+apiVersion: tailscale.com/v1alpha1
+kind: Connector
+metadata:
+  name: {{ .Values.hostname }}
+spec:
+  hostname: {{ .Values.hostname }}
+  proxyClass: {{ .Values.hostname }}
+  subnetRouter:
+    advertiseRoutes:
+      {{- toYaml .Values.routes | nindent 6 }}

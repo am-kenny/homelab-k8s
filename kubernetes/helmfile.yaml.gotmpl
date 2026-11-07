@@ -77,6 +77,7 @@ releases:
     namespace: cert-manager
     needs:
       - cert-manager/cert-manager
+      - external-secrets/secrets
     # No cert-manager CRDs exist on fresh install
     disableValidationOnInstall: true
 
@@ -84,6 +85,8 @@ releases:
     chart: mojo2600/pihole
     version: 2.38.0
     namespace: pihole
+    needs:
+      - external-secrets/secrets
     values:
       - values/pihole.yaml
   - name: tailscale-operator
@@ -106,6 +109,7 @@ releases:
     namespace: monitoring
     needs:
       - monitoring/prometheus-operator-crds
+      - external-secrets/secrets
     # No Prometheus operator CRDs exist on fresh install
     disableValidationOnInstall: true
     values:
@@ -144,6 +148,8 @@ releases:
   - name: am-pulsar-{{ . }}
     chart: ./charts/am-pulsar
     namespace: am-pulsar
+    needs:
+      - external-secrets/secrets
     values:
       - values/am-pulsar/common.yaml
       - values/am-pulsar/{{ . }}.yaml
@@ -153,17 +159,23 @@ releases:
     chart: couchdb/couchdb
     version: 4.6.3
     namespace: obsidian
+    needs:
+      - external-secrets/secrets
     values:
       - values/couchdb.yaml
   - name: kitchenowl
     chart: oci://ghcr.io/bjw-s-labs/helm/app-template
     version: 5.3.0
     namespace: kitchenowl
+    needs:
+      - external-secrets/secrets
     values:
       - values/kitchenowl.yaml
   - name: overleaf
     chart: ./charts/overleaf
     namespace: overleaf
+    needs:
+      - external-secrets/secrets
     values:
       - values/overleaf.yaml
 
@@ -171,5 +183,7 @@ releases:
     chart: jameswynn/homepage
     version: 2.1.0
     namespace: homepage
+    needs:
+      - external-secrets/secrets
     values:
       - values/homepage.yaml

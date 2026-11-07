@@ -33,7 +33,9 @@ repositories:
 
 ---
 
+# Releases are ordered by dependency: CRDs -> Secrets -> Networking -> Monitoring -> Tools and apps -> Main dashboard
 releases:
+  # Shared by kube-prometheus-stack and k8sgpt-operator
   - name: prometheus-operator-crds
     chart: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds
     version: 32.0.2
@@ -44,6 +46,7 @@ releases:
             # Keep CRDs on release removal
             helm.sh/resource-policy: keep
 
+  # Initialized and unsealed manually, see README.md
   - name: vault
     chart: hashicorp/vault
     version: 0.34.1
@@ -66,6 +69,7 @@ releases:
     values:
       - values/secrets/secrets.yaml
 
+  # Wildcard *.amhome.app certificate
   - name: cert-manager
     chart: oci://quay.io/jetstack/charts/cert-manager
     version: v1.21.3
@@ -81,6 +85,7 @@ releases:
     # No cert-manager CRDs exist on fresh install
     disableValidationOnInstall: true
 
+  # Resolves *.amhome.app to the cluster, blocks unwanted DNS lookups
   - name: pihole
     chart: mojo2600/pihole
     version: 2.38.0
@@ -89,6 +94,7 @@ releases:
       - external-secrets/secrets
     values:
       - values/pihole.yaml
+  # Exposes cluster services to the tailnet
   - name: tailscale-operator
     chart: tailscale/tailscale-operator
     version: 1.104.4
@@ -144,6 +150,7 @@ releases:
     values:
       - values/headlamp.yaml
 
+  # One release per notification target
 {{- range .Values.instances }}
   - name: am-pulsar-{{ . }}
     chart: ./charts/am-pulsar
@@ -179,6 +186,7 @@ releases:
     values:
       - values/overleaf.yaml
 
+  # Dashboard with all the services
   - name: homepage
     chart: jameswynn/homepage
     version: 2.1.0

@@ -133,13 +133,14 @@ Create each secret in the `homelab` KV mount, for example in the UI at `http://1
 | --- | --- |
 | `cert-manager/cloudflare-api-token` | `api-token` |
 | `pihole/pihole-admin` | `password` |
-| `homepage/homepage-secrets` | `HOMEPAGE_VAR_PIHOLE_KEY` |
-| `overleaf/overleaf-secrets` | `OVERLEAF_SESSION_SECRET`, `OVERLEAF_INVITE_TOKEN_SECRET` |
-| `obsidian/couchdb-admin` | `adminUsername`, `adminPassword`, `cookieAuthSecret`, `erlangCookie` |
+| `tailscale/operator-oauth` | `client_id`, `client_secret` |
 | `monitoring/grafana-admin` | `admin-user`, `admin-password` |
 | `monitoring/alertmanager-telegram` | `bot-token`, `chat-id` |
 | `am-pulsar/am-pulsar-secrets` | `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `TELEGRAM_BOT_TOKEN` |
+| `obsidian/couchdb-admin` | `adminUsername`, `adminPassword`, `cookieAuthSecret`, `erlangCookie` |
 | `kitchenowl/kitchenowl-secrets` | `JWT_SECRET_KEY` |
+| `overleaf/overleaf-secrets` | `OVERLEAF_SESSION_SECRET`, `OVERLEAF_INVITE_TOKEN_SECRET` |
+| `homepage/homepage-secrets` | `HOMEPAGE_VAR_PIHOLE_KEY` |
 
 ### 5. Deploy External Secrets Operator
 

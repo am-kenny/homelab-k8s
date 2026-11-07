@@ -20,37 +20,33 @@ repositories:
     url: https://charts.external-secrets.io
   - name: mojo2600
     url: https://mojo2600.github.io/pihole-kubernetes/
-  - name: jameswynn
-    url: https://jameswynn.github.io/helm-charts
-  - name: k8sgpt
-    url: https://charts.k8sgpt.ai/
-  - name: couchdb
-    url: https://apache.github.io/couchdb-helm
-  - name: headlamp
-    url: https://kubernetes-sigs.github.io/headlamp/
-  - name: bjw-s
-    url: ghcr.io/bjw-s-labs/helm
-    oci: true
   - name: tailscale
     url: https://pkgs.tailscale.com/helmcharts
+  - name: k8sgpt
+    url: https://charts.k8sgpt.ai/
+  - name: jameswynn
+    url: https://jameswynn.github.io/helm-charts
+  - name: headlamp
+    url: https://kubernetes-sigs.github.io/headlamp/
+  - name: couchdb
+    url: https://apache.github.io/couchdb-helm
 
 ---
 
+# Releases are ordered by dependency: CRDs -> Secrets -> Networking -> Monitoring -> Tools and apps -> Main dashboard
 releases:
-  - name: cert-manager
-    chart: oci://quay.io/jetstack/charts/cert-manager
-    version: v1.21.3
-    namespace: cert-manager
+  # Shared by kube-prometheus-stack and k8sgpt-operator
+  - name: prometheus-operator-crds
+    chart: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds
+    version: 32.0.2
+    namespace: monitoring
     values:
-      - values/cert-manager.yaml
-  - name: certificates
-    chart: ./charts/certificates
-    namespace: cert-manager
-    needs:
-      - cert-manager/cert-manager
-    # No cert-manager CRDs exist on fresh install
-    disableValidationOnInstall: true
+      - crds:
+          annotations:
+            # Keep CRDs on release removal
+            helm.sh/resource-policy: keep
 
+  # Initialized and unsealed manually, see README.md
   - name: vault
     chart: hashicorp/vault
     version: 0.34.1
@@ -73,36 +69,32 @@ releases:
     values:
       - values/secrets/secrets.yaml
 
-  - name: prometheus-operator-crds
-    chart: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds
-    version: 32.0.2
-    namespace: monitoring
+  # Wildcard *.amhome.app certificate
+  - name: cert-manager
+    chart: oci://quay.io/jetstack/charts/cert-manager
+    version: v1.21.3
+    namespace: cert-manager
     values:
-      - crds:
-          annotations:
-            # Keep CRDs on release removal
-            helm.sh/resource-policy: keep
-  - name: kube-prometheus-stack
-    chart: oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
-    version: 92.17.0
-    namespace: monitoring
+      - values/cert-manager.yaml
+  - name: certificates
+    chart: ./charts/certificates
+    namespace: cert-manager
     needs:
-      - monitoring/prometheus-operator-crds
-    # No Prometheus operator CRDs exist on fresh install
+      - cert-manager/cert-manager
+      - external-secrets/secrets
+    # No cert-manager CRDs exist on fresh install
     disableValidationOnInstall: true
-    values:
-      - values/monitoring/kube-prometheus-stack.yaml
-      - values/monitoring/ejectable-nodes.yaml
-    set:
-      - name: alertmanager.templateFiles.telegram\.tmpl
-        file: values/monitoring/alertmanager/telegram.tmpl
 
+  # Resolves *.amhome.app to the cluster, blocks unwanted DNS lookups
   - name: pihole
     chart: mojo2600/pihole
     version: 2.38.0
     namespace: pihole
+    needs:
+      - external-secrets/secrets
     values:
       - values/pihole.yaml
+  # Exposes cluster services to the tailnet
   - name: tailscale-operator
     chart: tailscale/tailscale-operator
     version: 1.104.4
@@ -117,44 +109,21 @@ releases:
     # No Tailscale CRDs exist on fresh install
     disableValidationOnInstall: true
 
-{{- range .Values.instances }}
-  - name: am-pulsar-{{ . }}
-    chart: ./charts/am-pulsar
-    namespace: am-pulsar
+  - name: kube-prometheus-stack
+    chart: oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
+    version: 92.17.0
+    namespace: monitoring
+    needs:
+      - monitoring/prometheus-operator-crds
+      - external-secrets/secrets
+    # No Prometheus operator CRDs exist on fresh install
+    disableValidationOnInstall: true
     values:
-      - values/am-pulsar/common.yaml
-      - values/am-pulsar/{{ . }}.yaml
-{{- end }}
-  - name: overleaf
-    chart: ./charts/overleaf
-    namespace: overleaf
-    values:
-      - values/overleaf.yaml
-  - name: homepage
-    chart: jameswynn/homepage
-    version: 2.1.0
-    namespace: homepage
-    values:
-      - values/homepage.yaml
-  # Obsidian sync
-  - name: couchdb
-    chart: couchdb/couchdb
-    version: 4.6.3
-    namespace: obsidian
-    values:
-      - values/couchdb.yaml
-  - name: headlamp
-    chart: headlamp/headlamp
-    version: 0.46.0
-    namespace: headlamp
-    values:
-      - values/headlamp.yaml
-  - name: kitchenowl
-    chart: oci://ghcr.io/bjw-s-labs/helm/app-template
-    version: 5.3.0
-    namespace: kitchenowl
-    values:
-      - values/kitchenowl.yaml
+      - values/monitoring/kube-prometheus-stack.yaml
+      - values/monitoring/ejectable-nodes.yaml
+    set:
+      - name: alertmanager.templateFiles.telegram\.tmpl
+        file: values/monitoring/alertmanager/telegram.tmpl
 
   - name: k8sgpt-operator
     chart: k8sgpt/k8sgpt-operator
@@ -165,11 +134,64 @@ releases:
     # No Prometheus operator CRDs exist on fresh install
     disableValidationOnInstall: true
     values:
-      - values/k8sgpt/operator.yaml
+      - values/k8sgpt/k8sgpt-operator.yaml
   - name: k8sgpt
     chart: ./charts/k8sgpt
     namespace: k8sgpt
     needs:
       - k8sgpt/k8sgpt-operator
     values:
-      - values/k8sgpt/values.yaml
+      - values/k8sgpt/k8sgpt.yaml
+
+  - name: headlamp
+    chart: headlamp/headlamp
+    version: 0.46.0
+    namespace: headlamp
+    values:
+      - values/headlamp.yaml
+
+  # One release per notification target
+{{- range .Values.instances }}
+  - name: am-pulsar-{{ . }}
+    chart: ./charts/am-pulsar
+    namespace: am-pulsar
+    needs:
+      - external-secrets/secrets
+    values:
+      - values/am-pulsar/common.yaml
+      - values/am-pulsar/{{ . }}.yaml
+{{- end }}
+  # Obsidian sync
+  - name: couchdb
+    chart: couchdb/couchdb
+    version: 4.6.3
+    namespace: obsidian
+    needs:
+      - external-secrets/secrets
+    values:
+      - values/couchdb.yaml
+  - name: kitchenowl
+    chart: oci://ghcr.io/bjw-s-labs/helm/app-template
+    version: 5.3.0
+    namespace: kitchenowl
+    needs:
+      - external-secrets/secrets
+    values:
+      - values/kitchenowl.yaml
+  - name: overleaf
+    chart: ./charts/overleaf
+    namespace: overleaf
+    needs:
+      - external-secrets/secrets
+    values:
+      - values/overleaf.yaml
+
+  # Dashboard with all the services
+  - name: homepage
+    chart: jameswynn/homepage
+    version: 2.1.0
+    namespace: homepage
+    needs:
+      - external-secrets/secrets
+    values:
+      - values/homepage.yaml

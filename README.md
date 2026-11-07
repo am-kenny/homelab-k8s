@@ -49,22 +49,22 @@ Outside the cluster, my desktop PC runs Ollama as the LLM backend for K8sGPT.
 
 | Service | What it does | Node |
 | --- | --- | --- |
+| [Vault](https://developer.hashicorp.com/vault) | Stores the app secrets | `am-server` |
+| [External Secrets Operator](https://external-secrets.io) | Syncs secrets from Vault into Kubernetes Secrets | Any |
+| [cert-manager](https://cert-manager.io) | Issues and renews certificates | Any |
 | [Pi-hole](https://pi-hole.net) | Network-wide ad blocking and local DNS | `am-server` |
-| [Homepage](https://gethomepage.dev) | Dashboard with widgets | `am-server` |
-| [Overleaf](https://github.com/yu-i-i/overleaf-cep) | LaTeX editor (Extended CE) | `am-wanderer` |
-| [CouchDB](https://couchdb.apache.org) | Sync server for Obsidian | `am-wanderer` |
-| [AmPulsar](https://github.com/am-kenny/ampulsar) | Twitch and TikTok live notifications to Telegram | Any |
+| [Tailscale operator](https://tailscale.com/docs/kubernetes-operator) | Runs the subnet router for remote access | Any |
+| [Tailscale subnet router](https://tailscale.com/docs/features/subnet-routers) | Routes tailnet devices to Traefik and Pi-hole | `am-server` |
 | [Prometheus](https://prometheus.io) | Metrics collection | `am-server` |
 | [Grafana](https://grafana.com) | Dashboards for cluster and node metrics | `am-server` |
 | [Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/) | Sends alerts to Telegram | `am-server` |
 | [K8sGPT](https://k8sgpt.ai) | Scans the cluster for issues | Any |
 | [Headlamp](https://headlamp.dev) | Web UI for accessing the cluster | Any |
-| [cert-manager](https://cert-manager.io) | Issues and renews certificates | Any |
-| [Vault](https://developer.hashicorp.com/vault) | Stores the app secrets | `am-server` |
-| [External Secrets Operator](https://external-secrets.io) | Syncs secrets from Vault into Kubernetes Secrets | Any |
-| [Tailscale operator](https://tailscale.com/docs/kubernetes-operator) | Runs the subnet router for remote access | Any |
-| [Tailscale subnet router](https://tailscale.com/docs/features/subnet-routers) | Routes tailnet devices to Traefik and Pi-hole | `am-server` |
+| [AmPulsar](https://github.com/am-kenny/ampulsar) | Twitch and TikTok live notifications to Telegram | Any |
+| [CouchDB](https://couchdb.apache.org) | Sync server for Obsidian | `am-wanderer` |
 | [KitchenOwl](https://kitchenowl.org) | Grocery list and meal planner | `am-server` |
+| [Overleaf](https://github.com/yu-i-i/overleaf-cep) | LaTeX editor (Extended CE) | `am-wanderer` |
+| [Homepage](https://gethomepage.dev) | Dashboard with widgets | `am-server` |~
 
 ## How it works
 
@@ -133,13 +133,14 @@ Create each secret in the `homelab` KV mount, for example in the UI at `http://1
 | --- | --- |
 | `cert-manager/cloudflare-api-token` | `api-token` |
 | `pihole/pihole-admin` | `password` |
-| `homepage/homepage-secrets` | `HOMEPAGE_VAR_PIHOLE_KEY` |
-| `overleaf/overleaf-secrets` | `OVERLEAF_SESSION_SECRET`, `OVERLEAF_INVITE_TOKEN_SECRET` |
-| `obsidian/couchdb-admin` | `adminUsername`, `adminPassword`, `cookieAuthSecret`, `erlangCookie` |
+| `tailscale/operator-oauth` | `client_id`, `client_secret` |
 | `monitoring/grafana-admin` | `admin-user`, `admin-password` |
 | `monitoring/alertmanager-telegram` | `bot-token`, `chat-id` |
 | `am-pulsar/am-pulsar-secrets` | `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `TELEGRAM_BOT_TOKEN` |
+| `obsidian/couchdb-admin` | `adminUsername`, `adminPassword`, `cookieAuthSecret`, `erlangCookie` |
 | `kitchenowl/kitchenowl-secrets` | `JWT_SECRET_KEY` |
+| `overleaf/overleaf-secrets` | `OVERLEAF_SESSION_SECRET`, `OVERLEAF_INVITE_TOKEN_SECRET` |
+| `homepage/homepage-secrets` | `HOMEPAGE_VAR_PIHOLE_KEY` |
 
 ### 5. Deploy External Secrets Operator
 

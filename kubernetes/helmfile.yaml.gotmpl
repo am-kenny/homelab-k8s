@@ -128,14 +128,14 @@ releases:
     # No Prometheus operator CRDs exist on fresh install
     disableValidationOnInstall: true
     values:
-      - values/k8sgpt/operator.yaml
+      - values/k8sgpt/k8sgpt-operator.yaml
   - name: k8sgpt
     chart: ./charts/k8sgpt
     namespace: k8sgpt
     needs:
       - k8sgpt/k8sgpt-operator
     values:
-      - values/k8sgpt/values.yaml
+      - values/k8sgpt/k8sgpt.yaml
 
   - name: headlamp
     chart: headlamp/headlamp

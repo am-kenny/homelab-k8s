@@ -1,6 +1,6 @@
 apiVersion: v2
 name: am-pulsar
-description: A Helm chart for Kubernetes
+description: Bot for Twitch and TikTok live notifications
 
 type: application
 

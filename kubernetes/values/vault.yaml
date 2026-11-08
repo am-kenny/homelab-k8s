@@ -16,7 +16,7 @@ server:
     size: 1Gi
 
   nodeSelector:
-    kubernetes.io/hostname: am-server
+    amhome.app/stable: "true"
 
   ingress:
     enabled: true

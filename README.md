@@ -64,7 +64,7 @@ Outside the cluster, my desktop PC runs Ollama as the LLM backend for K8sGPT.
 | [CouchDB](https://couchdb.apache.org) | Sync server for Obsidian | `am-wanderer` |
 | [KitchenOwl](https://kitchenowl.org) | Grocery list and meal planner | `am-server` |
 | [Overleaf](https://github.com/yu-i-i/overleaf-cep) | LaTeX editor (Extended CE) | `am-wanderer` |
-| [Homepage](https://gethomepage.dev) | Dashboard with widgets | `am-server` |~
+| [Homepage](https://gethomepage.dev) | Dashboard with widgets | `am-server` |
 
 ## How it works
 
@@ -140,7 +140,7 @@ Create each secret in the `homelab` KV mount, for example in the UI at `http://1
 | `obsidian/couchdb-admin` | `adminUsername`, `adminPassword`, `cookieAuthSecret`, `erlangCookie` |
 | `kitchenowl/kitchenowl-secrets` | `JWT_SECRET_KEY` |
 | `overleaf/overleaf-secrets` | `OVERLEAF_SESSION_SECRET`, `OVERLEAF_INVITE_TOKEN_SECRET` |
-| `homepage/homepage-secrets` | `HOMEPAGE_VAR_PIHOLE_KEY` |
+| `homepage/homepage-secrets` | `HOMEPAGE_VAR_PIHOLE_KEY`, `HOMEPAGE_VAR_GRAFANA_USER`, `HOMEPAGE_VAR_GRAFANA_PASSWORD` |
 
 ### 5. Deploy External Secrets Operator
 

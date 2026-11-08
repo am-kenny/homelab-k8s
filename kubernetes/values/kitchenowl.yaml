@@ -13,7 +13,7 @@ controllers:
 
 defaultPodOptions:
   nodeSelector:
-    kubernetes.io/hostname: am-server
+    amhome.app/stable: "true"
 
 service:
   app:

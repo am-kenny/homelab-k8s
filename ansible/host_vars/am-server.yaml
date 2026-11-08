@@ -1,0 +1,4 @@
+---
+k3s_config:
+  node-label:
+    - amhome.app/stable=true

@@ -22,7 +22,7 @@ alertmanager:
       - alertmanager.amhome.app
   alertmanagerSpec:
     nodeSelector:
-      kubernetes.io/hostname: am-server
+      amhome.app/stable: "true"
     externalUrl: https://alertmanager.amhome.app
     secrets:
       - alertmanager-telegram
@@ -49,16 +49,16 @@ alertmanager:
 
 prometheusOperator:
   nodeSelector:
-    kubernetes.io/hostname: am-server
+    amhome.app/stable: "true"
 
 kube-state-metrics:
   nodeSelector:
-    kubernetes.io/hostname: am-server
+    amhome.app/stable: "true"
 
 prometheus:
   prometheusSpec:
     nodeSelector:
-      kubernetes.io/hostname: am-server
+      amhome.app/stable: "true"
     storageSpec:
       volumeClaimTemplate:
         spec:
@@ -71,7 +71,7 @@ prometheus:
 
 grafana:
   nodeSelector:
-    kubernetes.io/hostname: am-server
+    amhome.app/stable: "true"
   admin:
     existingSecret: grafana-admin
   ingress:

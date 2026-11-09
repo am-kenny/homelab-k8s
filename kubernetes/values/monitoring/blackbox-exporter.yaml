@@ -1,0 +1,59 @@
+hostNetwork: true
+
+nodeSelector:
+  amhome.app/stable: "true"
+
+config:
+  modules:
+    tls_connect_ipv4:
+      prober: tcp
+      timeout: 5s
+      tcp:
+        preferred_ip_protocol: ip4
+        ip_protocol_fallback: false
+        tls: true
+    tls_connect_ipv6:
+      prober: tcp
+      timeout: 5s
+      tcp:
+        preferred_ip_protocol: ip6
+        ip_protocol_fallback: false
+        tls: true
+
+extraManifests:
+  - apiVersion: monitoring.coreos.com/v1
+    kind: Probe
+    metadata:
+      name: internet-ipv4
+      labels:
+        release: kube-prometheus-stack
+    spec:
+      jobName: internet
+      module: tls_connect_ipv4
+      prober:
+        url: '{{ include "prometheus-blackbox-exporter.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}'
+      targets:
+        staticConfig:
+          static:
+            - 1.1.1.1:443
+            - 9.9.9.9:443
+          labels:
+            ip_family: ipv4
+  - apiVersion: monitoring.coreos.com/v1
+    kind: Probe
+    metadata:
+      name: internet-ipv6
+      labels:
+        release: kube-prometheus-stack
+    spec:
+      jobName: internet
+      module: tls_connect_ipv6
+      prober:
+        url: '{{ include "prometheus-blackbox-exporter.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}'
+      targets:
+        staticConfig:
+          static:
+            - "[2606:4700:4700::1111]:443"
+            - "[2620:fe::fe]:443"
+          labels:
+            ip_family: ipv6

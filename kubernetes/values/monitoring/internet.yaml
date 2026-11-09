@@ -1,0 +1,14 @@
+additionalPrometheusRulesMap:
+  internet:
+    groups:
+      - name: internet
+        rules:
+          # Fires only when every probe of one IP family fails
+          - alert: InternetConnectionDown
+            expr: max by (ip_family) (probe_success{job="internet"}) == 0
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: Internet connection over {{ $labels.ip_family }} is down.
+              description: All {{ $labels.ip_family }} probes have failed for at least 2 minutes.

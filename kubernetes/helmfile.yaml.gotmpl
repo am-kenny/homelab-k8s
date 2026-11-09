@@ -121,9 +121,21 @@ releases:
     values:
       - values/monitoring/kube-prometheus-stack.yaml
       - values/monitoring/ejectable-nodes.yaml
+      - values/monitoring/internet.yaml
     set:
       - name: alertmanager.templateFiles.telegram\.tmpl
         file: values/monitoring/alertmanager/telegram.tmpl
+  # Internet connection probes over IPv4 and IPv6
+  - name: blackbox-exporter
+    chart: oci://ghcr.io/prometheus-community/charts/prometheus-blackbox-exporter
+    version: 11.21.1
+    namespace: monitoring
+    needs:
+      - monitoring/prometheus-operator-crds
+    # No Prometheus operator CRDs exist on fresh install
+    disableValidationOnInstall: true
+    values:
+      - values/monitoring/blackbox-exporter.yaml
 
   - name: k8sgpt-operator
     chart: k8sgpt/k8sgpt-operator

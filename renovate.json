@@ -29,6 +29,15 @@
       "description": "k3s upgrades get their own PR",
       "matchPackageNames": ["k3s-io/k3s"],
       "groupName": "k3s"
+    },
+    {
+      "description": "Prometheus and its CRDs are upgraded together",
+      "matchPackageNames": [
+        "ghcr.io/prometheus-community/charts/kube-prometheus-stack",
+        "ghcr.io/prometheus-community/charts/prometheus-operator-crds"
+      ],
+      "matchUpdateTypes": ["major"],
+      "groupName": "prometheus"
     }
   ]
 }

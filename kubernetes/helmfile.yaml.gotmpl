@@ -190,6 +190,12 @@ releases:
       - external-secrets/secrets
     values:
       - values/kitchenowl.yaml
+  - name: mealie
+    chart: oci://ghcr.io/bjw-s-labs/helm/app-template
+    version: 5.3.0
+    namespace: mealie
+    values:
+      - values/mealie.yaml
   - name: overleaf
     chart: ./charts/overleaf
     namespace: overleaf

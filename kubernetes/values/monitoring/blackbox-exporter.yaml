@@ -1,5 +1,9 @@
 hostNetwork: true
 
+strategy:
+  type: Recreate
+  rollingUpdate: null
+
 nodeSelector:
   amhome.app/stable: "true"
 

@@ -55,7 +55,7 @@ releases:
       - values/vault.yaml
   - name: external-secrets
     chart: external-secrets/external-secrets
-    version: 2.14.0
+    version: 2.15.0
     namespace: external-secrets
     values:
       - values/secrets/external-secrets.yaml
@@ -128,7 +128,7 @@ releases:
   # Internet connection probes over IPv4 and IPv6
   - name: blackbox-exporter
     chart: oci://ghcr.io/prometheus-community/charts/prometheus-blackbox-exporter
-    version: 11.21.1
+    version: 11.21.2
     namespace: monitoring
     needs:
       - monitoring/prometheus-operator-crds

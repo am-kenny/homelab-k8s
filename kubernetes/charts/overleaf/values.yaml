@@ -174,7 +174,7 @@ mongodb:
   enabled: true
   image:
     repository: mongo
-    tag: "8.3"
+    tag: "9.0"
     pullPolicy: IfNotPresent
   # Overleaf uses transactions, so MongoDB has to run as a replica set even
   # with a single member. The set is initiated by a postStart hook.

@@ -43,17 +43,23 @@ jobs:
         uses: dorny/paths-filter@v4
         with:
           filters: |
+            ci: &ci
+              - .github/workflows/ci.yaml
             yaml:
+              - *ci
               - '**/*.yaml'
               - '**/*.yml'
               - .yamllint
               - .yamllintignore
             ansible:
+              - *ci
               - 'ansible/**'
               - .ansible-lint
             helmfile:
+              - *ci
               - 'kubernetes/**'
             terraform:
+              - *ci
               - 'terraform/**'
 
   yamllint:

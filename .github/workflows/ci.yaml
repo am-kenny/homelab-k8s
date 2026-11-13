@@ -31,6 +31,7 @@ jobs:
       pull-requests: read
 
     outputs:
+      yaml: ${{ github.event_name != 'pull_request' || steps.filter.outputs.yaml == 'true' }}
       ansible: ${{ github.event_name != 'pull_request' || steps.filter.outputs.ansible == 'true' }}
 
     steps:
@@ -40,11 +41,19 @@ jobs:
         uses: dorny/paths-filter@v4
         with:
           filters: |
+            yaml:
+              - '**/*.yaml'
+              - '**/*.yml'
+              - .yamllint
+              - .yamllintignore
             ansible:
               - 'ansible/**'
               - .ansible-lint
 
   yamllint:
+    name: YAML Lint
+    needs: changes
+    if: needs.changes.outputs.yaml == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

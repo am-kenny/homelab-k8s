@@ -87,6 +87,9 @@ config:
         - KitchenOwl:
             href: https://kitchenowl.amhome.app
             icon: kitchenowl.png
+        - Mealie:
+            href: https://mealie.amhome.app
+            icon: mealie.png
         - Obsidian Sync:
             href: https://notes.amhome.app/_utils
             icon: couchdb.png

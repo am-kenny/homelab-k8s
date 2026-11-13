@@ -33,6 +33,7 @@ jobs:
     outputs:
       yaml: ${{ github.event_name != 'pull_request' || steps.filter.outputs.yaml == 'true' }}
       ansible: ${{ github.event_name != 'pull_request' || steps.filter.outputs.ansible == 'true' }}
+      helmfile: ${{ github.event_name != 'pull_request' || steps.filter.outputs.helmfile == 'true' }}
 
     steps:
       - name: Filter paths
@@ -49,6 +50,8 @@ jobs:
             ansible:
               - 'ansible/**'
               - .ansible-lint
+            helmfile:
+              - 'kubernetes/**'
 
   yamllint:
     name: YAML Lint
@@ -78,6 +81,9 @@ jobs:
           requirements_file: "ansible/requirements.yaml"
 
   helmfile:
+    name: Helmfile Checks
+    needs: changes
+    if: needs.changes.outputs.helmfile == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

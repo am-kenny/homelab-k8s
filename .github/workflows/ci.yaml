@@ -23,7 +23,49 @@ env:
   TERRAFORM_VERSION: 1.17.1
 
 jobs:
+  changes:
+    name: Changes
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: read
+
+    outputs:
+      yaml: ${{ github.event_name != 'pull_request' || steps.filter.outputs.yaml == 'true' }}
+      ansible: ${{ github.event_name != 'pull_request' || steps.filter.outputs.ansible == 'true' }}
+      helmfile: ${{ github.event_name != 'pull_request' || steps.filter.outputs.helmfile == 'true' }}
+      terraform: ${{ github.event_name != 'pull_request' || steps.filter.outputs.terraform == 'true' }}
+
+    steps:
+      - name: Filter paths
+        id: filter
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            ci: &ci
+              - .github/workflows/ci.yaml
+            yaml:
+              - *ci
+              - '**/*.yaml'
+              - '**/*.yml'
+              - .yamllint
+              - .yamllintignore
+            ansible:
+              - *ci
+              - 'ansible/**'
+              - .ansible-lint
+            helmfile:
+              - *ci
+              - 'kubernetes/**'
+            terraform:
+              - *ci
+              - 'terraform/**'
+
   yamllint:
+    name: YAML Lint
+    needs: changes
+    if: needs.changes.outputs.yaml == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -36,6 +78,8 @@ jobs:
 
   ansible-lint:
     name: Ansible Lint
+    needs: changes
+    if: needs.changes.outputs.ansible == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -46,6 +90,9 @@ jobs:
           requirements_file: "ansible/requirements.yaml"
 
   helmfile:
+    name: Helmfile Checks
+    needs: changes
+    if: needs.changes.outputs.helmfile == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -81,10 +128,13 @@ jobs:
             rendered
 
   terraform:
-    runs-on: ubuntu-latest
+    name: Terraform Checks
+    needs: changes
+    if: needs.changes.outputs.terraform == 'true'
     defaults:
       run:
         working-directory: terraform
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
 

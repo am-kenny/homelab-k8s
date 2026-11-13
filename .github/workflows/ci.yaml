@@ -23,6 +23,27 @@ env:
   TERRAFORM_VERSION: 1.17.1
 
 jobs:
+  changes:
+    name: Changes
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: read
+
+    outputs:
+      ansible: ${{ github.event_name != 'pull_request' || steps.filter.outputs.ansible == 'true' }}
+
+    steps:
+      - name: Filter paths
+        id: filter
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            ansible:
+              - 'ansible/**'
+              - .ansible-lint
+
   yamllint:
     runs-on: ubuntu-latest
     steps:
@@ -36,6 +57,8 @@ jobs:
 
   ansible-lint:
     name: Ansible Lint
+    needs: changes
+    if: needs.changes.outputs.ansible == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

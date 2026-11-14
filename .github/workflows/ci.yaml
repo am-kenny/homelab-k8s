@@ -14,13 +14,13 @@ concurrency:
 
 env:
   # renovate: datasource=github-releases depName=helm/helm
-  HELM_VERSION: v4.3.1
+  HELM_VERSION: v4.3.2
   # renovate: datasource=github-releases depName=helmfile/helmfile
-  HELMFILE_VERSION: v1.8.3
+  HELMFILE_VERSION: v1.8.4
   # renovate: datasource=github-releases depName=k3s-io/k3s extractVersion=^v(?<version>\d+\.\d+\.\d+)\+k3s\d+$
   KUBERNETES_VERSION: 1.36.3
   # renovate: datasource=github-releases depName=hashicorp/terraform extractVersion=^v(?<version>.+)$
-  TERRAFORM_VERSION: 1.17.1
+  TERRAFORM_VERSION: 1.17.2
 
 jobs:
   changes:
@@ -98,7 +98,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Lint releases
-        uses: helmfile/helmfile-action@v2.4.8
+        uses: helmfile/helmfile-action@v2.4.9
         with:
           helm-version: ${{ env.HELM_VERSION }}
           helmfile-version: ${{ env.HELMFILE_VERSION }}
@@ -106,7 +106,7 @@ jobs:
           helmfile-args: lint
 
       - name: Render releases
-        uses: helmfile/helmfile-action@v2.4.8
+        uses: helmfile/helmfile-action@v2.4.9
         with:
           helm-version: ${{ env.HELM_VERSION }}
           helmfile-version: ${{ env.HELMFILE_VERSION }}

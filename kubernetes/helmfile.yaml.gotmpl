@@ -88,7 +88,7 @@ releases:
   # Resolves *.amhome.app to the cluster, blocks unwanted DNS lookups
   - name: pihole
     chart: mojo2600/pihole
-    version: 2.38.0
+    version: 2.39.0
     namespace: pihole
     needs:
       - external-secrets/secrets
@@ -97,7 +97,7 @@ releases:
   # Exposes cluster services to the tailnet
   - name: tailscale-operator
     chart: tailscale/tailscale-operator
-    version: 1.104.4
+    version: 1.104.7
     namespace: tailscale
     needs:
       - external-secrets/secrets
@@ -111,7 +111,7 @@ releases:
 
   - name: kube-prometheus-stack
     chart: oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
-    version: 93.2.0
+    version: 93.3.0
     namespace: monitoring
     needs:
       - monitoring/prometheus-operator-crds
@@ -128,7 +128,7 @@ releases:
   # Internet connection probes over IPv4 and IPv6
   - name: blackbox-exporter
     chart: oci://ghcr.io/prometheus-community/charts/prometheus-blackbox-exporter
-    version: 11.21.2
+    version: 11.21.3
     namespace: monitoring
     needs:
       - monitoring/prometheus-operator-crds

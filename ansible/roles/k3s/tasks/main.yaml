@@ -64,14 +64,26 @@
     state: started
   when: not (ansible_check_mode and __k3s_install_needed)
 
-- name: Wait for node to report Ready
-  ansible.builtin.command: /usr/local/bin/k3s kubectl get nodes --no-headers
-  register: __k3s_nodes
+- name: Wait for node to register with the target version
+  ansible.builtin.command: >-
+    /usr/local/bin/k3s kubectl get node {{ __k3s_node_name }}
+    -o jsonpath={.status.nodeInfo.kubeletVersion}
+  register: __k3s_node_version
   changed_when: false
   check_mode: false
   retries: 30
   delay: 10
-  until: __k3s_nodes.stdout is search('\sReady\s')
+  until: __k3s_node_version.stdout == k3s_version
+  delegate_to: "{{ __k3s_server_host }}"
   when:
-    - k3s_node_type == 'server'
+    - k3s_version | length > 0
     - not (ansible_check_mode and __k3s_install_needed)
+
+- name: Wait for node to report Ready
+  ansible.builtin.command: >-
+    /usr/local/bin/k3s kubectl wait --for=condition=Ready
+    node/{{ __k3s_node_name }} --timeout=300s
+  changed_when: false
+  check_mode: false
+  delegate_to: "{{ __k3s_server_host }}"
+  when: not (ansible_check_mode and __k3s_install_needed)

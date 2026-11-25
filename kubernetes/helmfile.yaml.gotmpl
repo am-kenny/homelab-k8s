@@ -111,7 +111,7 @@ releases:
 
   - name: kube-prometheus-stack
     chart: oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
-    version: 93.3.0
+    version: 93.10.1
     namespace: monitoring
     needs:
       - monitoring/prometheus-operator-crds
@@ -128,7 +128,7 @@ releases:
   # Internet connection probes over IPv4 and IPv6
   - name: blackbox-exporter
     chart: oci://ghcr.io/prometheus-community/charts/prometheus-blackbox-exporter
-    version: 11.21.3
+    version: 11.24.0
     namespace: monitoring
     needs:
       - monitoring/prometheus-operator-crds
